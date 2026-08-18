@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { DIMENSIONS } from '../mock/dimensions';
+import { IBPLRegionalAxisMap } from '../components/IBPLRegionalAxisMap';
+import { ConsumerHabitsDashboard } from '../components/ConsumerHabitsDashboard';
+import { CassiHealthCIDDashboard } from '../components/CassiHealthCIDDashboard';
+import { DifinInvestmentsDashboard } from '../components/DifinInvestmentsDashboard';
 import {
   ECOSYSTEM_RANKINGS,
   DEMAND_SUPPLY_DATA,
@@ -43,6 +47,12 @@ import {
   BarChart3,
   Lightbulb,
   Award,
+  MapPin,
+  Trophy,
+  PartyPopper,
+  CreditCard,
+  Activity,
+  Landmark,
 } from 'lucide-react';
 
 export const InteligenciaView: React.FC = () => {
@@ -50,6 +60,10 @@ export const InteligenciaView: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<
     | 'visao_geral'
+    | 'habitos_consumo'
+    | 'saude_cassi_cid'
+    | 'difin_investimentos'
+    | 'mapa_ibpl'
     | 'ecossistema'
     | 'rankings'
     | 'demanda_oferta'
@@ -261,24 +275,28 @@ export const InteligenciaView: React.FC = () => {
         <div className="flex items-center gap-1 overflow-x-auto border-b border-[#EEF3F7] p-3 bg-[#FAFBFD] scrollbar-none text-xs font-bold">
           {[
             { id: 'visao_geral', label: '1. Dashboard das 8 Áreas' },
-            { id: 'ecossistema', label: '2. Funil do Ecossistema' },
-            { id: 'rankings', label: '3. Rankings de Serviços' },
-            { id: 'demanda_oferta', label: '4. Demanda x Oferta' },
-            { id: 'cobertura', label: '5. Matriz de Cobertura' },
-            { id: 'parceiros', label: '6. Visão de Parceiros' },
-            { id: 'insights', label: '7. Insights Estratégicos' },
-            { id: 'validacao_v1', label: '8. Validação do Protótipo' },
+            { id: 'habitos_consumo', label: '2. Hábitos de Consumo (Cartão) 💳' },
+            { id: 'saude_cassi_cid', label: '3. Saúde & CIDs (CASSI) 🏥' },
+            { id: 'difin_investimentos', label: '4. Investimentos (DIFIN) 🏛️' },
+            { id: 'mapa_ibpl', label: '5. Mapa Regional do IBPL 🗺️' },
+            { id: 'ecossistema', label: '6. Funil do Ecossistema' },
+            { id: 'rankings', label: '7. Rankings de Serviços' },
+            { id: 'demanda_oferta', label: '8. Demanda x Oferta' },
+            { id: 'cobertura', label: '9. Matriz de Cobertura' },
+            { id: 'parceiros', label: '10. Visão de Parceiros' },
+            { id: 'insights', label: '11. Insights Estratégicos' },
+            { id: 'validacao_v1', label: '12. Validação do Protótipo' },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-2.5 rounded-xl whitespace-nowrap transition-all ${
+              className={`px-4 py-2.5 rounded-xl whitespace-nowrap transition-all flex items-center gap-1.5 ${
                 activeTab === tab.id
                   ? 'bg-[#163A63] text-white shadow-xs'
                   : 'text-[#5A6F82] hover:text-[#163A63] hover:bg-[#EEF3F7]'
               }`}
             >
-              {tab.label}
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
@@ -286,6 +304,97 @@ export const InteligenciaView: React.FC = () => {
         {/* TAB 1: VISÃO GERAL DAS 8 ÁREAS */}
         {activeTab === 'visao_geral' && (
           <div className="p-6 sm:p-8 space-y-8 animate-in fade-in">
+            {/* Quick Access Spotlights Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Card 1: Hábitos de Consumo */}
+              <div
+                onClick={() => setActiveTab('habitos_consumo')}
+                className="p-5 bg-gradient-to-br from-[#FFFBF7] to-[#FFF3E6] rounded-2xl border border-[#FFE0B2] hover:border-[#E67E22] cursor-pointer shadow-2xs hover:shadow-md transition-all flex items-center justify-between group"
+              >
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black text-[#B25900] uppercase tracking-wider flex items-center gap-1">
+                    <CreditCard className="w-3.5 h-3.5 text-[#E67E22]" />
+                    <span>DADOS OUROCARD / BB</span>
+                  </span>
+                  <h4 className="font-extrabold text-sm text-[#163A63] group-hover:text-[#E67E22] transition-colors">
+                    Hábitos de Consumo do Aposentado
+                  </h4>
+                  <p className="text-xs text-[#5A6F82]">
+                    Transição de gastos, farmácia, turismo e impacto no IBPL.
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-[#E67E22] text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <CreditCard className="w-5 h-5" />
+                </div>
+              </div>
+
+              {/* Card 2: Saúde CASSI & CIDs */}
+              <div
+                onClick={() => setActiveTab('saude_cassi_cid')}
+                className="p-5 bg-gradient-to-br from-[#F4FBF9] to-[#E6F7F6] rounded-2xl border border-[#B4EBE6] hover:border-[#12B8AE] cursor-pointer shadow-2xs hover:shadow-md transition-all flex items-center justify-between group"
+              >
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black text-[#0A7D76] uppercase tracking-wider flex items-center gap-1">
+                    <Activity className="w-3.5 h-3.5 text-[#12B8AE]" />
+                    <span>DADOS CASSI & CIDs</span>
+                  </span>
+                  <h4 className="font-extrabold text-sm text-[#163A63] group-hover:text-[#12B8AE] transition-colors">
+                    Saúde & Prevalência de CIDs
+                  </h4>
+                  <p className="text-xs text-[#5A6F82]">
+                    Sinistralidade, doenças crônicas e programas preventivos.
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-[#12B8AE] text-[#163A63] flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <Activity className="w-5 h-5" />
+                </div>
+              </div>
+
+              {/* Card 3: Investimentos DIFIN */}
+              <div
+                onClick={() => setActiveTab('difin_investimentos')}
+                className="p-5 bg-gradient-to-br from-[#FAFBFD] to-[#EEF3F7] rounded-2xl border border-[#CAD8E6] hover:border-[#163A63] cursor-pointer shadow-2xs hover:shadow-md transition-all flex items-center justify-between group"
+              >
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black text-[#164E7A] uppercase tracking-wider flex items-center gap-1">
+                    <Landmark className="w-3.5 h-3.5 text-[#163A63]" />
+                    <span>DADOS DIFIN PREVI</span>
+                  </span>
+                  <h4 className="font-extrabold text-sm text-[#163A63] group-hover:text-[#164E7A] transition-colors">
+                    Investimentos & Aplicações
+                  </h4>
+                  <p className="text-xs text-[#5A6F82]">
+                    Alocação, perfil de risco, rentabilidade e Empréstimo Simples.
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-[#163A63] text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <Landmark className="w-5 h-5" />
+                </div>
+              </div>
+
+              {/* Card 4: Mapa Regional */}
+              <div
+                onClick={() => setActiveTab('mapa_ibpl')}
+                className="p-5 bg-gradient-to-br from-[#F4FBF9] to-[#E6F7F6] rounded-2xl border border-[#B4EBE6] hover:border-[#12B8AE] cursor-pointer shadow-2xs hover:shadow-md transition-all flex items-center justify-between group"
+              >
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black text-[#0A7D76] uppercase tracking-wider flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-[#12B8AE]" />
+                    <span>NOVIDADE GEOGRÁFICA</span>
+                  </span>
+                  <h4 className="font-extrabold text-sm text-[#163A63] group-hover:text-[#12B8AE] transition-colors">
+                    Mapa do IBPL: Onde está bem e Onde melhorar
+                  </h4>
+                  <p className="text-xs text-[#5A6F82]">
+                    Diagnóstico dos 5 eixos e macrorregiões do Brasil com planos de ação.
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-[#12B8AE] text-[#163A63] flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <MapPin className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               {/* Global Radar */}
               <div className="lg:col-span-6 bg-[#FAFBFD] p-6 rounded-2xl border border-[#D9E4EE]">
@@ -330,6 +439,34 @@ export const InteligenciaView: React.FC = () => {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* TAB 2: HÁBITOS DE CONSUMO (CARTÃO DE CRÉDITO) */}
+        {activeTab === 'habitos_consumo' && (
+          <div className="p-6 sm:p-8 space-y-6 animate-in fade-in">
+            <ConsumerHabitsDashboard />
+          </div>
+        )}
+
+        {/* TAB 3: SAÚDE CASSI & CIDs */}
+        {activeTab === 'saude_cassi_cid' && (
+          <div className="p-6 sm:p-8 space-y-6 animate-in fade-in">
+            <CassiHealthCIDDashboard />
+          </div>
+        )}
+
+        {/* TAB 4: INVESTIMENTOS DIFIN */}
+        {activeTab === 'difin_investimentos' && (
+          <div className="p-6 sm:p-8 space-y-6 animate-in fade-in">
+            <DifinInvestmentsDashboard />
+          </div>
+        )}
+
+        {/* TAB 5: MAPA REGIONAL DO IBPL POR EIXO */}
+        {activeTab === 'mapa_ibpl' && (
+          <div className="p-6 sm:p-8 space-y-6 animate-in fade-in">
+            <IBPLRegionalAxisMap />
           </div>
         )}
 

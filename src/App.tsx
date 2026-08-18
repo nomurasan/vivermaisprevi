@@ -11,6 +11,7 @@ import { PrevixAssistant } from './components/PrevixAssistant';
 import { ExperienceDetailModal } from './components/ExperienceDetailModal';
 import { ExperienceFeedbackModal } from './components/ExperienceFeedbackModal';
 import { PrototypeFeedbackModal } from './components/PrototypeFeedbackModal';
+import { ToastNotification } from './components/ToastNotification';
 
 import { HomeView } from './views/HomeView';
 import { OnboardingView } from './views/OnboardingView';
@@ -21,6 +22,7 @@ import { InteligenciaView } from './views/InteligenciaView';
 import { ProgramView } from './views/ProgramView';
 import { HowItWorksView } from './views/HowItWorksView';
 import { PrivacyView } from './views/PrivacyView';
+import { DesaposenteRedeView } from './views/DesaposenteRedeView';
 
 import { MessageSquareQuote, Sparkles } from 'lucide-react';
 
@@ -39,6 +41,8 @@ const MainLayout: React.FC = () => {
         return <OnboardingView />;
       case 'meu_viver_mais':
         return <MeuViverMaisView />;
+      case 'desaposente_rede':
+        return <DesaposenteRedeView />;
       case 'explorar':
         return <ExplorarView />;
       case 'meu_plano':
@@ -86,6 +90,7 @@ const MainLayout: React.FC = () => {
       <ExperienceDetailModal />
       <ExperienceFeedbackModal />
       <PrototypeFeedbackModal />
+      <ToastNotification />
 
       {/* Footer */}
       <Footer />

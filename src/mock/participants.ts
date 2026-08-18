@@ -96,9 +96,39 @@ const REGIONS = [
   { region: 'Norte', states: ['PA', 'AM'], cities: ['Belém', 'Manaus'] },
 ];
 
-const FIRST_NAMES_M = ['Antônio', 'Luiz', 'José', 'Paulo', 'Francisco', 'Marcos', 'Fernando', 'Sérgio', 'Ricardo', 'Eduardo', 'Jorge', 'Cláudio', 'Gilberto', 'César'];
-const FIRST_NAMES_F = ['Maria', 'Ana', 'Tereza', 'Helena', 'Lúcia', 'Beatriz', 'Carmen', 'Sônia', 'Vera', 'Regina', 'Cláudia', 'Denise', 'Fátima', 'Elisabete'];
+const FIRST_NAMES_M = ['Antônio', 'Luiz', 'José', 'Paulo', 'Francisco', 'Marcos', 'Fernando', 'Sérgio', 'Ricardo', 'Eduardo', 'Jorge', 'Cláudio', 'Gilberto', 'César', 'Vicente', 'Valter'];
+const FIRST_NAMES_F = ['Maria', 'Ana', 'Tereza', 'Helena', 'Lúcia', 'Beatriz', 'Carmen', 'Sônia', 'Regina', 'Cláudia', 'Denise', 'Fátima', 'Elisabete', 'Silvia'];
 const LAST_NAMES = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Rodrigues', 'Ferreira', 'Alves', 'Pereira', 'Lima', 'Gomes', 'Costa', 'Ribeiro', 'Martins', 'Carvalho', 'Almeida', 'Lopes', 'Soares', 'Fernandes'];
+
+const MALE_AVATARS = [
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1463453091185-61582044d556?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1552058544-f2b08422138a?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+];
+
+const FEMALE_AVATARS = [
+  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1548142813-c348350df52b?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+  'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=200&h=200&fit=crop&crop=faces&auto=format&q=80',
+];
 
 export const SYNTHETIC_PARTICIPANTS: Participant[] = [
   PROFILES.carlos,
@@ -153,6 +183,10 @@ for (let i = 1; i <= 55; i++) {
   if (avg >= 80) ibplStatus = 'Bem-estar elevado';
   else if (avg < 65) ibplStatus = 'Bem-estar em transição';
 
+  const avatarUrl = isFemale
+    ? FEMALE_AVATARS[i % FEMALE_AVATARS.length]
+    : MALE_AVATARS[i % MALE_AVATARS.length];
+
   SYNTHETIC_PARTICIPANTS.push({
     id: `participant_${i}`,
     name: `${firstName} ${lastName1} ${lastName2}`,
@@ -166,7 +200,7 @@ for (let i = 1; i <= 55; i++) {
     yearsRetired,
     persona: isRetired ? `Aposentado (${yearsRetired} anos)` : 'Associado Ativo',
     lifeMomentId,
-    avatarUrl: `https://images.unsplash.com/photo-${1500000000000 + (i * 123456) % 9000000}?w=150&auto=format&fit=crop&q=80`,
+    avatarUrl,
     ibpl: avg,
     ibplStatus,
     scores,

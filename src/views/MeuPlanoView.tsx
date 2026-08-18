@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { DIMENSIONS } from '../mock/dimensions';
+import { UserScheduleEventsModal } from '../components/UserScheduleEventsModal';
 import {
   BookmarkCheck,
   CheckCircle2,
@@ -12,6 +13,10 @@ import {
   Calendar,
   Clock,
   ArrowRight,
+  Ticket,
+  QrCode,
+  MapPin,
+  Landmark,
 } from 'lucide-react';
 
 export const MeuPlanoView: React.FC = () => {
@@ -24,39 +29,127 @@ export const MeuPlanoView: React.FC = () => {
     currentParticipant,
   } = useApp();
 
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const firstName = currentParticipant.name.split(' ')[0];
 
   const plannedItems = myPlan.filter((item) => item.status !== 'realizado');
   const completedItems = myPlan.filter((item) => item.status === 'realizado');
 
   return (
-    <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8 space-y-8">
-      {/* Header */}
+    <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8 space-y-8 animate-in fade-in">
+      {/* Header with Plan & Tickets */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#D9E4EE] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-[#164E7A]">
-              SUAS ESCOLHAS
+              MEU PLANO PREVI • MATRÍCULA 8.240.119-2
             </span>
             <span className="text-[10px] bg-[#E6F7F6] text-[#0A7D76] px-2 py-0.5 rounded-full font-bold border border-[#B4EBE6]">
-              {myPlan.length} itens no plano
+              {currentParticipant.retirementStatus} ({currentParticipant.planType})
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#163A63]">
-            Meu Plano Viver Mais
+            Meu Plano & Ingressos de Experiências
           </h1>
           <p className="text-xs sm:text-sm text-[#5A6F82] max-w-xl leading-relaxed">
-            Estas são as possibilidades que você escolheu salvar e vivenciar. Sem pressões ou metas rígidas — um guia acolhedor para o seu tempo.
+            Consulte seus ingressos emitidos, histórico de agendamentos confirmados e experiências salvas no seu itinerário de vida.
           </p>
         </div>
 
-        <button
-          onClick={() => navigateTo('explorar')}
-          className="px-5 py-3 bg-[#12B8AE] hover:bg-[#0A988F] text-[#163A63] hover:text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-sm transition-all flex items-center gap-2 self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>ADICIONAR NOVAS EXPERIÊNCIAS</span>
-        </button>
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <button
+            onClick={() => setIsScheduleModalOpen(true)}
+            className="w-full sm:w-auto px-5 py-3 bg-[#163A63] hover:bg-[#1E466F] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
+          >
+            <Ticket className="w-4 h-4 text-[#12B8AE]" />
+            <span>Ver Ingressos & Vouchers (3)</span>
+          </button>
+
+          <button
+            onClick={() => navigateTo('meu_viver_mais', 'pda')}
+            className="w-full sm:w-auto px-5 py-3 bg-[#12B8AE] hover:bg-[#0A988F] text-[#163A63] hover:text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Adicionar do PDA</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Featured Active Tickets Bar */}
+      <div className="bg-gradient-to-r from-[#163A63] to-[#1E466F] text-white p-6 rounded-3xl space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Ticket className="w-5 h-5 text-[#12B8AE]" />
+            <h3 className="font-extrabold text-base text-white">
+              Próximos Ingressos & Agendamentos Confirmados
+            </h3>
+          </div>
+          <button
+            onClick={() => setIsScheduleModalOpen(true)}
+            className="text-xs text-[#B4EBE6] hover:text-white font-bold underline"
+          >
+            Ver todos (3) →
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div
+            onClick={() => setIsScheduleModalOpen(true)}
+            className="bg-white/10 hover:bg-white/15 p-4 rounded-2xl border border-white/15 cursor-pointer transition-all space-y-2"
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-[#B4EBE6]">Maturi / Viagens 50+</span>
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#12B8AE] text-[#163A63]">
+                CONFIRMADO
+              </span>
+            </div>
+            <h4 className="font-black text-sm text-white leading-snug">
+              Caravana Cultural: Paraty Histórica
+            </h4>
+            <div className="text-xs text-white/80 space-y-0.5">
+              <p>📅 24/Out/2026 às 08:30</p>
+              <p>📍 Ponto de Encontro Sede PREVI</p>
+            </div>
+          </div>
+
+          <div
+            onClick={() => setIsScheduleModalOpen(true)}
+            className="bg-white/10 hover:bg-white/15 p-4 rounded-2xl border border-white/15 cursor-pointer transition-all space-y-2"
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-[#B4EBE6]">Sesc / Gastronomia Ativa</span>
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#12B8AE] text-[#163A63]">
+                CONFIRMADO
+              </span>
+            </div>
+            <h4 className="font-black text-sm text-white leading-snug">
+              Oficina de Gastronomia Mediterrânea
+            </h4>
+            <div className="text-xs text-white/80 space-y-0.5">
+              <p>📅 12/Nov/2026 às 15:00</p>
+              <p>📍 Espaço Viva Bem - São Paulo</p>
+            </div>
+          </div>
+
+          <div
+            onClick={() => setIsScheduleModalOpen(true)}
+            className="bg-white/10 hover:bg-white/15 p-4 rounded-2xl border border-white/15 cursor-pointer transition-all space-y-2"
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-[#B4EBE6]">Maturi & PREVI</span>
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#12B8AE] text-[#163A63]">
+                ONLINE
+              </span>
+            </div>
+            <h4 className="font-black text-sm text-white leading-snug">
+              Mentoria: Transição & Carreira 50+
+            </h4>
+            <div className="text-xs text-white/80 space-y-0.5">
+              <p>📅 19/Nov/2026 às 10:00</p>
+              <p>💻 Sala Virtual Zoom PREVI</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main Grid: Atividades Planejadas & Realizadas */}
@@ -140,10 +233,10 @@ export const MeuPlanoView: React.FC = () => {
                 Explore o catálogo de parceiros para salvar experiências que combinem com o seu ritmo de vida.
               </p>
               <button
-                onClick={() => navigateTo('explorar')}
+                onClick={() => navigateTo('meu_viver_mais', 'pda')}
                 className="px-5 py-2.5 bg-[#12B8AE] text-[#163A63] font-bold text-xs rounded-xl"
               >
-                Explorar Catálogo
+                Explorar no PDA
               </button>
             </div>
           )}
@@ -206,6 +299,13 @@ export const MeuPlanoView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* User Schedule & Events / Tickets Modal */}
+      <UserScheduleEventsModal
+        isOpen={isScheduleModalOpen}
+        onClose={() => setIsScheduleModalOpen(false)}
+      />
     </div>
   );
 };
+

@@ -99,6 +99,21 @@ export const PREVIX_MENU_OPTIONS: PrevixMenuItem[] = [
     },
   },
   {
+    id: 'desaposente_rede',
+    label: 'Desaposente sua Rede (Conexões & Saberes)',
+    actionType: 'custom',
+    responseTitle: 'Desaposente sua Rede: Vínculos & Vitalidade',
+    responseMessages: [
+      'Que ótima escolha! 🤝 O "Desaposente sua Rede" foi pensado para conectar você a antigos colegas de trabalho, novas amizades e grupos de prática por afinidade.',
+      'Você pode compartilhar o que sabe, expressar o que sempre quis aprender e descobrir parceiros para atividades com total segurança e respeito à sua privacidade (LGPD).',
+      'Solidão, aqui não! O que você gostaria de explorar hoje?',
+    ],
+    suggestedAction: {
+      label: 'Abrir Desaposente sua Rede',
+      view: 'desaposente_rede',
+    },
+  },
+  {
     id: 'explain_ibpl',
     label: 'Quero entender o IBPL',
     actionType: 'explain_ibpl',
@@ -139,5 +154,10 @@ export const CONTEXTUAL_PROMPTS: Record<string, { prompt: string; reply: string;
     prompt: 'Quer ajuda para escolher ou avaliar sua próxima experiência no Plano?',
     reply: 'Você pode salvar experiências aqui e marcá-las como realizadas quando vivenciá-las para nos contar o que achou!',
     linkView: 'meu_plano',
+  },
+  desaposente_rede: {
+    prompt: 'Quer que eu mostre pessoas com histórias, hobbies e saberes parecidos com os seus?',
+    reply: 'Com prazer! No Desaposente sua Rede, você conecta suas paixões e memórias com outros associados em grupos de prática e reconexões seguras.',
+    linkView: 'desaposente_rede',
   },
 };

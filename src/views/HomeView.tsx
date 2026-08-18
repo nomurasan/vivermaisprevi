@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { Avatar } from '../components/Avatar';
 import { DIMENSIONS } from '../mock/dimensions';
 import { PROFILES } from '../mock/participants';
 import { DimensionId } from '../types';
@@ -222,6 +223,28 @@ export const HomeView: React.FC = () => {
             EXPERIMENTAR AGORA
           </button>
         </div>
+
+        {/* NOVA EXPERIÊNCIA: DESAPOSENTE SUA REDE */}
+        <div className="mt-6 bg-gradient-to-r from-[#164E7A] to-[#163A63] text-white p-6 sm:p-8 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-6 shadow-md border border-[#12B8AE]/30">
+          <div className="space-y-2 text-center sm:text-left max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#12B8AE]/20 border border-[#12B8AE]/40 rounded-full text-[#B4EBE6] text-xs font-bold uppercase tracking-wider">
+              <span>Solidão, aqui não! • Novidade</span>
+            </div>
+            <h3 className="text-xl font-extrabold text-white">
+              DESAPOSENTE SUA REDE
+            </h3>
+            <p className="text-xs sm:text-sm text-[#D9E4EE] leading-relaxed">
+              Pessoas, histórias, interesses e novas experiências esperando para se conectar com você. Conecte-se com antigos colegas do BB/PREVI e associados com os mesmos hobbies.
+            </p>
+          </div>
+          <button
+            onClick={() => navigateTo('desaposente_rede')}
+            className="px-6 py-3 bg-[#12B8AE] hover:bg-[#0A988F] text-[#163A63] hover:text-white font-black text-xs uppercase tracking-wider rounded-xl shrink-0 shadow-md transition-all flex items-center gap-2"
+          >
+            <span>Conhecer a Rede</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
       </section>
 
       {/* 3. AS 8 ÁREAS DA VIDA */}
@@ -404,9 +427,11 @@ export const HomeView: React.FC = () => {
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className="w-12 h-12 rounded-full bg-[#163A63] text-white flex items-center justify-center font-bold text-base">
-                        {p.name.charAt(0)}
-                      </div>
+                      <Avatar
+                        src={p.avatarUrl}
+                        name={p.name}
+                        size="lg"
+                      />
                       <span className="text-xs font-black text-[#12B8AE] bg-[#E6F7F6] px-2.5 py-1 rounded-md border border-[#B4EBE6]">
                         IBPL {p.ibpl}
                       </span>

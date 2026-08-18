@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { PROFILES } from '../mock/participants';
+import { Avatar } from './Avatar';
+import { UserScheduleEventsModal } from './UserScheduleEventsModal';
 import {
   Sparkles,
   Users,
@@ -14,6 +16,8 @@ import {
   Menu,
   X,
   Type,
+  Ticket,
+  Calendar,
 } from 'lucide-react';
 
 export const Header: React.FC = () => {
@@ -30,15 +34,14 @@ export const Header: React.FC = () => {
 
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
   const menuItems = [
-    { id: 'home', label: 'INÍCIO' },
+    { id: 'meu_viver_mais', label: 'MEU VIVER MAIS' },
+    { id: 'desaposente_rede', label: 'DESAPOSENTE SUA REDE' },
+    { id: 'inteligencia', label: 'INTELIGÊNCIA DE LONGEVIDADE' },
     { id: 'programa', label: 'O PROGRAMA' },
     { id: 'como_funciona', label: 'COMO FUNCIONA' },
-    { id: 'meu_viver_mais', label: 'MEU VIVER MAIS' },
-    { id: 'explorar', label: 'EXPLORAR' },
-    { id: 'inteligencia', label: 'INTELIGÊNCIA DE LONGEVIDADE' },
-    { id: 'privacidade', label: 'PRIVACIDADE' },
   ];
 
   return (
@@ -47,19 +50,23 @@ export const Header: React.FC = () => {
       <div className="bg-white border-b border-[#D9E4EE] px-4 lg:px-8 py-2.5">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo PREVI + Viver Mais */}
-          <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigateTo('home')}>
-            <div className="flex items-center gap-2">
-              {/* PREVI SVG Emblem */}
-              <div className="w-10 h-10 rounded-lg bg-[#163A63] flex items-center justify-center text-white font-black tracking-wider text-sm shadow-sm">
-                PREVI
-              </div>
+          <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigateTo('meu_viver_mais', 'retrato')}>
+            <div className="flex items-center gap-3">
+              {/* Official PREVI Logo Image */}
+              <img
+                src="/previ.png"
+                alt="PREVI"
+                className="h-8 sm:h-9 w-auto object-contain"
+                referrerPolicy="no-referrer"
+              />
+              <div className="h-7 w-px bg-[#D9E4EE] hidden sm:block" />
               <div>
-                <span className="text-xs uppercase tracking-widest text-[#164E7A] font-bold block">
-                  Caixa de Previdência
+                <span className="text-[10px] uppercase tracking-widest text-[#164E7A] font-bold block">
+                  Programa
                 </span>
-                <span className="text-lg font-bold text-[#163A63] tracking-tight flex items-center gap-1.5">
-                  Viver Mais <span className="text-[#12B8AE] font-black">•</span>
-                  <span className="text-[11px] font-medium text-[#164E7A] px-2 py-0.5 bg-[#E6F7F6] rounded-full border border-[#B4EBE6]">
+                <span className="text-base sm:text-lg font-bold text-[#163A63] tracking-tight flex items-center gap-1.5 leading-none mt-0.5">
+                  Vivendo Mais PREVI <span className="text-[#12B8AE] font-black">•</span>
+                  <span className="text-[10px] font-medium text-[#164E7A] px-2 py-0.5 bg-[#E6F7F6] rounded-full border border-[#B4EBE6]">
                     Protótipo V1
                   </span>
                 </span>
@@ -92,15 +99,27 @@ export const Header: React.FC = () => {
               <span>Avaliar Protótipo</span>
             </button>
 
+            {/* Meus Ingressos & Agendamentos CTA */}
+            <button
+              onClick={() => setIsScheduleModalOpen(true)}
+              title="Consultar seus ingressos, inscrições e agendamentos"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-[#E6F7F6] hover:bg-[#D0F2EF] text-[#0A7D76] rounded-lg text-xs font-extrabold transition-all border border-[#B4EBE6]"
+            >
+              <Ticket className="w-4 h-4 text-[#12B8AE]" />
+              <span>Meus Ingressos (3)</span>
+            </button>
+
             {/* Demonstrative Profile Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                 className="flex items-center gap-2 px-3 py-1.5 bg-[#F4F7FA] hover:bg-[#EEF3F7] rounded-lg border border-[#D9E4EE] text-left transition-colors"
               >
-                <div className="w-7 h-7 rounded-full bg-[#164E7A] text-white flex items-center justify-center font-bold text-xs">
-                  {currentParticipant.name.charAt(0)}
-                </div>
+                <Avatar
+                  src={currentParticipant.avatarUrl}
+                  name={currentParticipant.name}
+                  size="sm"
+                />
                 <div className="hidden md:block">
                   <span className="text-[10px] text-[#5A6F82] font-semibold block uppercase tracking-wider">
                     Perfil Demonstrativo
@@ -132,9 +151,11 @@ export const Header: React.FC = () => {
                         activeProfileId === p.id ? 'bg-[#E6F7F6] border-l-4 border-[#12B8AE]' : ''
                       }`}
                     >
-                      <div className="w-8 h-8 rounded-full bg-[#164E7A] text-white flex items-center justify-center font-bold text-xs">
-                        {p.name.charAt(0)}
-                      </div>
+                      <Avatar
+                        src={p.avatarUrl}
+                        name={p.name}
+                        size="sm"
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="text-xs font-bold text-[#163A63] truncate">{p.name.split(' ')[0]}</p>
@@ -190,17 +211,6 @@ export const Header: React.FC = () => {
               );
             })}
           </nav>
-
-          {/* Turquesa CTA Button */}
-          <div className="hidden lg:block py-2">
-            <button
-              onClick={() => navigateTo('meu_viver_mais')}
-              className="px-5 py-2.5 bg-[#12B8AE] hover:bg-[#0A988F] text-[#163A63] hover:text-white font-extrabold text-xs tracking-wider uppercase rounded-md shadow-sm transition-all flex items-center gap-2"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>ENTRAR NO MEU VIVER MAIS</span>
-            </button>
-          </div>
         </div>
 
         {/* Mobile Navigation Drawer */}
@@ -225,18 +235,24 @@ export const Header: React.FC = () => {
             <div className="pt-2 px-2">
               <button
                 onClick={() => {
-                  navigateTo('meu_viver_mais');
+                  navigateTo('desaposente_rede');
                   setIsMobileMenuOpen(false);
                 }}
                 className="w-full py-2.5 bg-[#12B8AE] text-[#163A63] font-bold text-xs uppercase tracking-wider rounded text-center flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
-                ENTRAR NO MEU VIVER MAIS
+                DESAPOSENTE SUA REDE
               </button>
             </div>
           </div>
         )}
       </div>
+
+      {/* User Schedule / Tickets Modal */}
+      <UserScheduleEventsModal
+        isOpen={isScheduleModalOpen}
+        onClose={() => setIsScheduleModalOpen(false)}
+      />
     </header>
   );
 };

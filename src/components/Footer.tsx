@@ -12,12 +12,17 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-[#1E466F]">
           {/* Col 1: PREVI & Viver Mais Concept */}
           <div className="md:col-span-1 space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded bg-white text-[#163A63] flex items-center justify-center font-black text-xs">
-                PREVI
+            <div className="flex items-center gap-3">
+              <div className="bg-white px-2.5 py-1 rounded-lg shadow-xs flex items-center justify-center">
+                <img
+                  src="/previ.png"
+                  alt="PREVI"
+                  className="h-6 w-auto object-contain"
+                  referrerPolicy="no-referrer"
+                />
               </div>
               <span className="font-bold text-lg tracking-tight text-white">
-                Viver Mais
+                Vivendo Mais PREVI
               </span>
             </div>
             <p className="text-xs text-[#D9E4EE] leading-relaxed">

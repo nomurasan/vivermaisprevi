@@ -190,3 +190,168 @@ export interface InstitutionalFilters {
   dimension: string;
   period: string;
 }
+
+// ==========================================
+// DESAPOSENTE SUA REDE - TIPOS & ESTRUTURAS
+// ==========================================
+
+export type InterestRole =
+  | 'quero_aprender'
+  | 'estou_aprendendo'
+  | 'quero_praticar'
+  | 'praticar_com_outros'
+  | 'posso_compartilhar'
+  | 'posso_ensinar'
+  | 'conversar'
+  | 'participar_experiencias'
+  | 'encontrar_pessoas';
+
+export interface CatalogInterest {
+  id: string;
+  name: string;
+  category: string;
+  icon: string;
+  active: boolean;
+  description?: string;
+}
+
+export interface ParticipantInterestItem {
+  interestId: string;
+  roles: InterestRole[];
+  customName?: string;
+}
+
+export interface KnowledgeItem {
+  id: string;
+  title: string;
+  description?: string;
+  category?: string;
+  canShare: boolean;
+}
+
+export interface LearningWishItem {
+  id: string;
+  text: string;
+  interestId?: string;
+}
+
+export interface ResumeActivityWishItem {
+  id: string;
+  text: string;
+  interestId?: string;
+}
+
+export interface ExperimentWishItem {
+  id: string;
+  text: string;
+}
+
+export type ConnectionPreference =
+  | 'colegas'
+  | 'mesmos_hobbies'
+  | 'ensinar'
+  | 'aprender_com_outros'
+  | 'proximos'
+  | 'presencial'
+  | 'online'
+  | 'grupos_pratica'
+  | 'voluntariado'
+  | 'intergeracional'
+  | 'novas_amizades';
+
+export interface AvailabilitySchedule {
+  periods: ('manha' | 'tarde' | 'noite')[];
+  days: ('dias_uteis' | 'finais_semana')[];
+  modality: 'presencial' | 'online' | 'ambos';
+  displacementRadiusKm: number;
+}
+
+export interface ParticipantPrivacySettings {
+  showName: boolean;
+  showPhoto: boolean;
+  showCity: boolean;
+  showInterests: boolean;
+  showLearningWishes: boolean;
+  showShareKnowledge: boolean;
+  showCareerHistory: boolean;
+  allowColleaguesFind: boolean;
+  allowInterestSuggestions: boolean;
+  receiveInvites: boolean;
+  joinGroups: boolean;
+  shareContactAfterConnection: boolean;
+}
+
+export interface FunctionalTrajectoryItem {
+  id: string;
+  participantId: string;
+  organization: string;
+  unitName: string;
+  role: string;
+  city: string;
+  state: string;
+  startYear: number;
+  endYear: number;
+  isCurrent?: boolean;
+}
+
+export interface ParticipantExpandedProfile {
+  participantId: string;
+  isCompleted: boolean;
+  interests: ParticipantInterestItem[];
+  knowledgeItems: KnowledgeItem[];
+  learningWishes: LearningWishItem[];
+  resumeActivities: ResumeActivityWishItem[];
+  experimentWishes: ExperimentWishItem[];
+  connectionPreferences: ConnectionPreference[];
+  availability: AvailabilitySchedule;
+  privacy: ParticipantPrivacySettings;
+  trajectory: FunctionalTrajectoryItem[];
+  completedAt?: string;
+}
+
+export interface DiscoveryRewardSummary {
+  trajectoryCount: number;
+  commonInterestsCount: number;
+  complementaryKnowledgeCount: number;
+  communitiesCount: number;
+  nearbyExperiencesCount: number;
+}
+
+export interface AffinityMatch {
+  participant: Participant;
+  expandedProfile?: ParticipantExpandedProfile;
+  commonInterests: string[];
+  complementaryInterests: { learnerWant: string; sharerCan: string }[];
+  commonTrajectory?: { unitName: string; period: string }[];
+  distanceKm?: number;
+  compositeScore: number;
+  reasons: string[];
+}
+
+export interface PeerChatMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar?: string;
+  text: string;
+  timestamp: string;
+  isRead?: boolean;
+  attachedExperienceId?: string;
+  attachedExperienceTitle?: string;
+  isVoiceNote?: boolean;
+  voiceDurationSeconds?: number;
+}
+
+export interface PeerConversation {
+  id: string;
+  peer: Participant;
+  status: 'connected' | 'pending_sent' | 'pending_received';
+  lastMessage?: string;
+  lastMessageTime?: string;
+  unreadCount: number;
+  sharedInterests: string[];
+  trajectoryOverlap?: string;
+  isOnline: boolean;
+  messages: PeerChatMessage[];
+}
+
