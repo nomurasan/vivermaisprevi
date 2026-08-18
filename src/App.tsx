@@ -25,10 +25,14 @@ import { PrivacyView } from './views/PrivacyView';
 import { MessageSquareQuote, Sparkles } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
-  const { currentRoute, fontSizeLarge, setIsFeedbackModalOpen } = useApp();
+  const { currentView, fontSizeLarge, setIsFeedbackModalOpen } = useApp();
+
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [currentView]);
 
   const renderCurrentView = () => {
-    switch (currentRoute) {
+    switch (currentView) {
       case 'home':
         return <HomeView />;
       case 'onboarding':
