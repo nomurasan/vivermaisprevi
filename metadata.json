@@ -1,0 +1,6 @@
+{
+  "name": "Plataforma Viver Mais PREVI",
+  "description": "Protótipo conceitual e navegável Viver Mais PREVI para longevidade ativa, bem-estar multidimensional, momentos de vida e ecossistema de parceiros.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
