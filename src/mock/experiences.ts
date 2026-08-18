@@ -202,8 +202,7 @@ export const EXPERIENCES: Experience[] = [
       "Fortalecer memória afetiva e vínculos sociais pode reduzir sensação de desconexão e ampliar segurança emocional no dia a dia.",
     whyThisForYou:
       "Uma proposta simples, humana e personalizada para momentos em que lembrar da própria história faz toda a diferença.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=500&auto=format&fit=crop&q=80",
+    imageUrl: "/caixa.png",
     views: 1860,
     interests: 940,
     uses: 520,
