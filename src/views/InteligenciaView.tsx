@@ -272,7 +272,7 @@ export const InteligenciaView: React.FC = () => {
       {/* 3. Abas de Inteligência */}
       <div className="bg-white rounded-3xl border border-[#D9E4EE] shadow-xs overflow-hidden">
         {/* Tab Headers */}
-        <div className="flex items-center gap-1 overflow-x-auto border-b border-[#EEF3F7] p-3 bg-[#FAFBFD] scrollbar-none text-xs font-bold">
+        <div className="flex flex-wrap items-center gap-2 border-b border-[#EEF3F7] p-3 bg-[#FAFBFD] text-xs font-bold">
           {[
             { id: 'visao_geral', label: '1. Dashboard das 8 Áreas' },
             { id: 'habitos_consumo', label: '2. Hábitos de Consumo (Cartão) 💳' },
@@ -290,7 +290,7 @@ export const InteligenciaView: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-2.5 rounded-xl whitespace-nowrap transition-all flex items-center gap-1.5 ${activeTab === tab.id
+              className={`px-3 py-2 rounded-xl whitespace-nowrap transition-all flex items-center gap-1.5 ${activeTab === tab.id
                 ? 'bg-[#163A63] text-white shadow-xs'
                 : 'text-[#5A6F82] hover:text-[#163A63] hover:bg-[#EEF3F7]'
                 }`}
