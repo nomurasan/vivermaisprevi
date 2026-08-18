@@ -122,6 +122,25 @@ export const ExperienceDetailModal: React.FC = () => {
             )}
           </div>
 
+          {exp.videoEmbedUrl && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#164E7A]">
+                Vídeo da experiência
+              </h4>
+              <div className="aspect-video w-full rounded-2xl overflow-hidden border border-[#D9E4EE] bg-black">
+                <iframe
+                  src={exp.videoEmbedUrl}
+                  title={`Vídeo ${exp.title}`}
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Why This For You (Algorithmic / Human Connection) */}
           <div className="p-4 bg-[#EBF3FA] rounded-2xl border border-[#CAD8E6] space-y-2">
             <div className="flex items-center gap-1.5 text-xs font-bold text-[#164E7A]">
@@ -167,11 +186,10 @@ export const ExperienceDetailModal: React.FC = () => {
         <div className="p-4 px-6 bg-[#FAFBFD] border-t border-[#D9E4EE] flex items-center justify-between gap-3 shrink-0">
           <button
             onClick={() => showInterestInExperience(exp)}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border ${
-              hasInterest
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border ${hasInterest
                 ? 'bg-[#E6F7F6] text-[#0A7D76] border-[#B4EBE6]'
                 : 'bg-white text-[#5A6F82] border-[#D9E4EE] hover:bg-[#F4F7FA]'
-            }`}
+              }`}
           >
             <Heart className={`w-4 h-4 ${hasInterest ? 'fill-[#12B8AE] text-[#12B8AE]' : ''}`} />
             <span>{hasInterest ? 'Interesse Registrado' : 'Tenho Interesse'}</span>
@@ -187,11 +205,10 @@ export const ExperienceDetailModal: React.FC = () => {
 
             <button
               onClick={() => toggleSaveExperience(exp)}
-              className={`px-6 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 shadow-sm ${
-                isSaved
+              className={`px-6 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 shadow-sm ${isSaved
                   ? 'bg-[#163A63] text-white'
                   : 'bg-[#12B8AE] hover:bg-[#0A988F] text-[#163A63] hover:text-white'
-              }`}
+                }`}
             >
               {isSaved ? (
                 <>

@@ -52,7 +52,6 @@ export const PARTNERS: Partner[] = [
     description:
       "A LIFEBOOK oferece a Caixa de Primeiros Socorros da Memória: uma caixa afetiva preparada pela pessoa ou pela família, com elementos sensoriais que ajudam a recuperar identidade, vínculos e boas lembranças em momentos de fragilidade, saudade ou desconexão.",
     featuredServiceTitle: "Caixa de Primeiros Socorros da Memória",
-    featuredVideoEmbedUrl: "https://www.youtube.com/embed/yrbAE8ZXho0",
     logoText: "LIFEBOOK",
     dimensions: ["saude_emocional", "relacionamentos", "espiritualidade"],
     lifeMoments: [

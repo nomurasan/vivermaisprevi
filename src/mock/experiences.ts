@@ -203,6 +203,8 @@ export const EXPERIENCES: Experience[] = [
     whyThisForYou:
       "Uma proposta simples, humana e personalizada para momentos em que lembrar da própria história faz toda a diferença.",
     imageUrl: "/caixa.png",
+    videoEmbedUrl:
+      "https://www.youtube.com/embed/yrbAE8ZXho0?si=4-IShhBPg8lWoUr9",
     views: 1860,
     interests: 940,
     uses: 520,

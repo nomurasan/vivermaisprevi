@@ -291,8 +291,8 @@ export const InteligenciaView: React.FC = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`px-4 py-2.5 rounded-xl whitespace-nowrap transition-all flex items-center gap-1.5 ${activeTab === tab.id
-                  ? 'bg-[#163A63] text-white shadow-xs'
-                  : 'text-[#5A6F82] hover:text-[#163A63] hover:bg-[#EEF3F7]'
+                ? 'bg-[#163A63] text-white shadow-xs'
+                : 'text-[#5A6F82] hover:text-[#163A63] hover:bg-[#EEF3F7]'
                 }`}
             >
               <span>{tab.label}</span>
@@ -530,8 +530,8 @@ export const InteligenciaView: React.FC = () => {
                     key={t.id}
                     onClick={() => setRankingTab(t.id as any)}
                     className={`px-3 py-1.5 rounded-lg font-bold text-[11px] transition-colors ${rankingTab === t.id
-                        ? 'bg-[#163A63] text-white shadow-xs'
-                        : 'text-[#5A6F82] hover:text-[#163A63]'
+                      ? 'bg-[#163A63] text-white shadow-xs'
+                      : 'text-[#5A6F82] hover:text-[#163A63]'
                       }`}
                   >
                     {t.label}
@@ -608,10 +608,10 @@ export const InteligenciaView: React.FC = () => {
                     <h4 className="font-bold text-sm text-[#163A63]">{item.name}</h4>
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${item.status === 'BOA COBERTURA'
-                          ? 'bg-[#E6F7F6] text-[#0A7D76] border border-[#B4EBE6]'
-                          : item.status === 'OPORTUNIDADE DE AMPLIAR'
-                            ? 'bg-[#EDF2F7] text-[#2C3E50] border border-[#CAD8E6]'
-                            : 'bg-[#EBF3FA] text-[#164E7A] border border-[#D9E4EE]'
+                        ? 'bg-[#E6F7F6] text-[#0A7D76] border border-[#B4EBE6]'
+                        : item.status === 'OPORTUNIDADE DE AMPLIAR'
+                          ? 'bg-[#EDF2F7] text-[#2C3E50] border border-[#CAD8E6]'
+                          : 'bg-[#EBF3FA] text-[#164E7A] border border-[#D9E4EE]'
                         }`}
                     >
                       {item.status}
@@ -687,8 +687,8 @@ export const InteligenciaView: React.FC = () => {
                       <td className="p-3 text-center">
                         <span
                           className={`px-3 py-1 font-bold rounded-lg ${row.cuidadores_e_familia < 2
-                              ? 'bg-[#EDF2F7] text-[#2C3E50]'
-                              : 'bg-[#EBF3FA] text-[#164E7A]'
+                            ? 'bg-[#EDF2F7] text-[#2C3E50]'
+                            : 'bg-[#EBF3FA] text-[#164E7A]'
                             }`}
                         >
                           {row.cuidadores_e_familia} sol.
@@ -712,8 +712,8 @@ export const InteligenciaView: React.FC = () => {
                   key={p.id}
                   onClick={() => setSelectedPartnerId(p.id)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedPartnerId === p.id
-                      ? 'bg-[#163A63] text-white shadow-xs'
-                      : 'bg-[#F4F7FA] text-[#5A6F82] hover:bg-[#EEF3F7]'
+                    ? 'bg-[#163A63] text-white shadow-xs'
+                    : 'bg-[#F4F7FA] text-[#5A6F82] hover:bg-[#EEF3F7]'
                     }`}
                 >
                   {p.name} {p.isRealExample && '★'}
@@ -745,23 +745,6 @@ export const InteligenciaView: React.FC = () => {
                 <div className="p-3 bg-white rounded-xl border border-[#D9E4EE]">
                   <p className="text-[11px] text-[#5A6F82] font-bold uppercase tracking-wide">Serviço em destaque</p>
                   <p className="text-sm font-bold text-[#163A63] mt-1">{selectedPartner.featuredServiceTitle}</p>
-                </div>
-              )}
-
-              {selectedPartner.featuredVideoEmbedUrl && (
-                <div className="space-y-2">
-                  <p className="text-[11px] text-[#5A6F82] font-bold uppercase tracking-wide">Vídeo</p>
-                  <div className="aspect-video w-full rounded-xl overflow-hidden border border-[#D9E4EE] bg-black">
-                    <iframe
-                      src={selectedPartner.featuredVideoEmbedUrl}
-                      title={`Vídeo ${selectedPartner.name}`}
-                      loading="lazy"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      referrerPolicy="strict-origin-when-cross-origin"
-                      allowFullScreen
-                      className="w-full h-full"
-                    />
-                  </div>
                 </div>
               )}
 

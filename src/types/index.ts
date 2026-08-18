@@ -82,7 +82,6 @@ export interface Partner {
   description: string;
   website?: string;
   featuredServiceTitle?: string;
-  featuredVideoEmbedUrl?: string;
   logoText: string;
   dimensions: DimensionId[];
   lifeMoments: string[];
@@ -114,6 +113,7 @@ export interface Experience {
   recommendationReason: string;
   whyThisForYou: string;
   imageUrl?: string;
+  videoEmbedUrl?: string;
   views: number;
   interests: number;
   uses: number;
