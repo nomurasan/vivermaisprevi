@@ -1,14 +1,14 @@
 export type DimensionId =
-  | 'saude_fisica'
-  | 'saude_emocional'
-  | 'relacionamentos'
-  | 'trabalho_proposito'
-  | 'espiritualidade'
-  | 'lazer'
-  | 'recursos_financeiros'
-  | 'moradia';
+  | "saude_fisica"
+  | "saude_emocional"
+  | "relacionamentos"
+  | "trabalho_proposito"
+  | "espiritualidade"
+  | "lazer"
+  | "recursos_financeiros"
+  | "moradia";
 
-export type StatusScore = 'FORTALECIDA' | 'ACOMPANHAR' | 'MERECE_ATENCAO';
+export type StatusScore = "FORTALECIDA" | "ACOMPANHAR" | "MERECE_ATENCAO";
 
 export interface DimensionConfig {
   id: DimensionId;
@@ -47,25 +47,29 @@ export interface Participant {
   id: string;
   name: string;
   age: number;
-  gender: 'M' | 'F' | 'Outro';
+  gender: "M" | "F" | "Outro";
   city: string;
   state: string;
-  region: 'Sudeste' | 'Sul' | 'Nordeste' | 'Centro-Oeste' | 'Norte';
-  planType: 'Plano 1' | 'PREVI Futuro' | 'PREVI Família';
+  region: "Sudeste" | "Sul" | "Nordeste" | "Centro-Oeste" | "Norte";
+  planType: "Plano 1" | "PREVI Futuro" | "PREVI Família";
   retirementStatus:
-    | 'Aposentado'
-    | 'Aposentada'
-    | 'Pré-aposentado'
-    | 'Pré-aposentada'
-    | 'Pensionista'
-    | 'Ativo'
-    | 'Ativa';
+    | "Aposentado"
+    | "Aposentada"
+    | "Pré-aposentado"
+    | "Pré-aposentada"
+    | "Pensionista"
+    | "Ativo"
+    | "Ativa";
   yearsRetired: number;
   persona: string;
   lifeMomentId: string;
   avatarUrl: string;
   ibpl: number;
-  ibplStatus: 'Bem-estar elevado' | 'Bem-estar adequado' | 'Bem-estar em transição' | 'Atenção prioritária';
+  ibplStatus:
+    | "Bem-estar elevado"
+    | "Bem-estar adequado"
+    | "Bem-estar em transição"
+    | "Atenção prioritária";
   scores: Record<DimensionId, number>;
   declaredInterests?: string[];
 }
@@ -77,6 +81,8 @@ export interface Partner {
   category: string;
   description: string;
   website?: string;
+  featuredServiceTitle?: string;
+  featuredVideoEmbedUrl?: string;
   logoText: string;
   dimensions: DimensionId[];
   lifeMoments: string[];
@@ -101,9 +107,9 @@ export interface Experience {
   secondaryDimensionId?: DimensionId;
   lifeMomentIds: string[];
   goalTags: string[];
-  modality: 'Online' | 'Presencial' | 'Híbrido';
+  modality: "Online" | "Presencial" | "Híbrido";
   location: string;
-  priceType: 'Gratuito' | 'Benefício PREVI' | 'Desconto Exclusivo' | 'Pago';
+  priceType: "Gratuito" | "Benefício PREVI" | "Desconto Exclusivo" | "Pago";
   priceDetail?: string;
   recommendationReason: string;
   whyThisForYou: string;
@@ -121,7 +127,7 @@ export interface PlanItem {
   experienceId: string;
   experience: Experience;
   addedAt: string;
-  status: 'planejado' | 'em_andamento' | 'realizado';
+  status: "planejado" | "em_andamento" | "realizado";
   completedAt?: string;
   userNotes?: string;
 }
@@ -131,7 +137,7 @@ export interface ExperienceEvaluation {
   experienceId: string;
   participantId: string;
   completedDate: string;
-  feeling: 'adorei' | 'gostei' | 'razoavel' | 'nao_gostei';
+  feeling: "adorei" | "gostei" | "razoavel" | "nao_gostei";
   benefitsGained: string[];
   comment?: string;
   partnerRatings: {
@@ -139,36 +145,36 @@ export interface ExperienceEvaluation {
     easeOfUse: number;
     metExpectations: number;
     recommendationMatch: number;
-    wouldUseAgain: 'Sim' | 'Talvez' | 'Não';
-    wouldRecommend: 'Sim' | 'Talvez' | 'Não';
+    wouldUseAgain: "Sim" | "Talvez" | "Não";
+    wouldRecommend: "Sim" | "Talvez" | "Não";
   };
 }
 
 export interface PrototypeFeedback {
   id: string;
   createdAt: string;
-  q1Utility: 'Muito' | 'Sim' | 'Talvez' | 'Não';
+  q1Utility: "Muito" | "Sim" | "Talvez" | "Não";
   q2LikedMost: string[];
   q3WishList: string;
-  q4WillUse: 'Certamente' | 'Provavelmente' | 'Talvez' | 'Provavelmente não';
-  q5ValuePerception: 'Muito' | 'Um pouco' | 'Não mudaria' | 'Reduziria';
-  q6FutureTests: 'Sim' | 'Talvez' | 'Não';
+  q4WillUse: "Certamente" | "Provavelmente" | "Talvez" | "Provavelmente não";
+  q5ValuePerception: "Muito" | "Um pouco" | "Não mudaria" | "Reduziria";
+  q6FutureTests: "Sim" | "Talvez" | "Não";
 }
 
 export interface InteractionEvent {
   id: string;
   type:
-    | 'VIEW_EXPERIENCE'
-    | 'SAVE_EXPERIENCE'
-    | 'SHOW_INTEREST'
-    | 'MARK_AS_COMPLETED'
-    | 'RATE_EXPERIENCE'
-    | 'RATE_PARTNER'
-    | 'OPEN_PREVIX'
-    | 'PREVIX_INTERACTION'
-    | 'SELECT_LIFE_GOAL'
-    | 'PROTOTYPE_FEEDBACK'
-    | 'CHANGE_PROFILE';
+    | "VIEW_EXPERIENCE"
+    | "SAVE_EXPERIENCE"
+    | "SHOW_INTEREST"
+    | "MARK_AS_COMPLETED"
+    | "RATE_EXPERIENCE"
+    | "RATE_PARTNER"
+    | "OPEN_PREVIX"
+    | "PREVIX_INTERACTION"
+    | "SELECT_LIFE_GOAL"
+    | "PROTOTYPE_FEEDBACK"
+    | "CHANGE_PROFILE";
   timestamp: string;
   payload: Record<string, any>;
 }
@@ -196,15 +202,15 @@ export interface InstitutionalFilters {
 // ==========================================
 
 export type InterestRole =
-  | 'quero_aprender'
-  | 'estou_aprendendo'
-  | 'quero_praticar'
-  | 'praticar_com_outros'
-  | 'posso_compartilhar'
-  | 'posso_ensinar'
-  | 'conversar'
-  | 'participar_experiencias'
-  | 'encontrar_pessoas';
+  | "quero_aprender"
+  | "estou_aprendendo"
+  | "quero_praticar"
+  | "praticar_com_outros"
+  | "posso_compartilhar"
+  | "posso_ensinar"
+  | "conversar"
+  | "participar_experiencias"
+  | "encontrar_pessoas";
 
 export interface CatalogInterest {
   id: string;
@@ -247,22 +253,22 @@ export interface ExperimentWishItem {
 }
 
 export type ConnectionPreference =
-  | 'colegas'
-  | 'mesmos_hobbies'
-  | 'ensinar'
-  | 'aprender_com_outros'
-  | 'proximos'
-  | 'presencial'
-  | 'online'
-  | 'grupos_pratica'
-  | 'voluntariado'
-  | 'intergeracional'
-  | 'novas_amizades';
+  | "colegas"
+  | "mesmos_hobbies"
+  | "ensinar"
+  | "aprender_com_outros"
+  | "proximos"
+  | "presencial"
+  | "online"
+  | "grupos_pratica"
+  | "voluntariado"
+  | "intergeracional"
+  | "novas_amizades";
 
 export interface AvailabilitySchedule {
-  periods: ('manha' | 'tarde' | 'noite')[];
-  days: ('dias_uteis' | 'finais_semana')[];
-  modality: 'presencial' | 'online' | 'ambos';
+  periods: ("manha" | "tarde" | "noite")[];
+  days: ("dias_uteis" | "finais_semana")[];
+  modality: "presencial" | "online" | "ambos";
   displacementRadiusKm: number;
 }
 
@@ -345,7 +351,7 @@ export interface PeerChatMessage {
 export interface PeerConversation {
   id: string;
   peer: Participant;
-  status: 'connected' | 'pending_sent' | 'pending_received';
+  status: "connected" | "pending_sent" | "pending_received";
   lastMessage?: string;
   lastMessageTime?: string;
   unreadCount: number;
@@ -354,4 +360,3 @@ export interface PeerConversation {
   isOnline: boolean;
   messages: PeerChatMessage[];
 }
-
