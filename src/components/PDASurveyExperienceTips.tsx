@@ -301,11 +301,10 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSelectedDimFilter('priority')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                selectedDimFilter === 'priority'
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${selectedDimFilter === 'priority'
                   ? 'bg-[#163A63] text-white shadow-xs'
                   : 'bg-[#F4F7FA] text-[#5A6F82] hover:bg-[#EEF3F7]'
-              }`}
+                }`}
             >
               <Target className="w-3.5 h-3.5 text-[#12B8AE]" />
               <span>Prioridades do Radar ({priorityList.length})</span>
@@ -313,11 +312,10 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
 
             <button
               onClick={() => setSelectedDimFilter('all')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-                selectedDimFilter === 'all'
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${selectedDimFilter === 'all'
                   ? 'bg-[#163A63] text-white shadow-xs'
                   : 'bg-[#F4F7FA] text-[#5A6F82] hover:bg-[#EEF3F7]'
-              }`}
+                }`}
             >
               Todas as Experiências ({EXPERIENCES.length})
             </button>
@@ -332,11 +330,10 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
               <button
                 key={g.id}
                 onClick={() => setSelectedDimFilter(g.id)}
-                className={`p-3.5 rounded-2xl border text-left transition-all flex items-center gap-3 ${
-                  isSelected
+                className={`p-3.5 rounded-2xl border text-left transition-all flex items-center gap-3 ${isSelected
                     ? 'bg-[#163A63] text-white border-[#163A63] shadow-md ring-2 ring-[#12B8AE]'
                     : 'bg-[#F4F7FA] text-[#163A63] border-[#D9E4EE] hover:bg-[#EEF3F7] hover:border-[#CAD8E6]'
-                }`}
+                  }`}
               >
                 <span className="text-2xl shrink-0">{g.emoji}</span>
                 <div className="space-y-0.5">
@@ -357,8 +354,8 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
           {selectedDimFilter === 'priority'
             ? `Cursos & Experiências Recomendados para suas Prioridades (${currentExperiences.length})`
             : selectedDimFilter === 'all'
-            ? `Todas as Experiências do Catálogo (${currentExperiences.length})`
-            : `Experiências para "${selectedDimFilter}" (${currentExperiences.length})`}
+              ? `Todas as Experiências do Catálogo (${currentExperiences.length})`
+              : `Experiências para "${selectedDimFilter}" (${currentExperiences.length})`}
         </h4>
         {selectedDimFilter !== 'priority' && (
           <button
@@ -414,13 +411,12 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
                   {/* Price Tag Overlay */}
                   <div className="absolute bottom-3 right-3">
                     <span
-                      className={`px-2.5 py-1 rounded-md text-[10px] font-bold shadow-xs ${
-                        exp.priceType === 'Benefício PREVI'
+                      className={`px-2.5 py-1 rounded-md text-[10px] font-bold shadow-xs ${exp.priceType === 'Benefício PREVI'
                           ? 'bg-[#12B8AE] text-[#163A63]'
                           : exp.priceType === 'Desconto Exclusivo'
-                          ? 'bg-white text-[#164E7A] border border-[#D9E4EE]'
-                          : 'bg-white/95 text-[#2C3E50]'
-                      }`}
+                            ? 'bg-white text-[#164E7A] border border-[#D9E4EE]'
+                            : 'bg-white/95 text-[#2C3E50]'
+                        }`}
                     >
                       {exp.priceType}
                     </span>
@@ -441,11 +437,10 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
                         e.stopPropagation();
                         toggleSaveExperience(exp.id);
                       }}
-                      className={`p-1.5 rounded-lg border transition-colors ${
-                        isSaved
+                      className={`p-1.5 rounded-lg border transition-colors ${isSaved
                           ? 'bg-[#12B8AE] text-[#163A63] border-[#12B8AE]'
                           : 'bg-white text-[#5A6F82] border-[#D9E4EE] hover:text-[#163A63]'
-                      }`}
+                        }`}
                       title={isSaved ? 'Salvo no Meu Plano' : 'Salvar no PDA'}
                     >
                       {isSaved ? (

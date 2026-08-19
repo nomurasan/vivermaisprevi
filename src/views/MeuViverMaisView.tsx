@@ -196,20 +196,18 @@ export const MeuViverMaisView: React.FC = () => {
               <button
                 key={t.id}
                 onClick={() => setMeuViverMaisTab(t.id)}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                  active
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${active
                     ? 'bg-[#163A63] text-white shadow-xs'
                     : 'text-[#5A6F82] hover:text-[#163A63] hover:bg-[#F4F7FA]'
-                }`}
+                  }`}
               >
                 <span>{t.label}</span>
                 {t.badge && (
                   <span
-                    className={`text-[9px] px-1.5 py-0.2 rounded-full font-black uppercase ${
-                      active
+                    className={`text-[9px] px-1.5 py-0.2 rounded-full font-black uppercase ${active
                         ? 'bg-[#12B8AE] text-[#163A63]'
                         : 'bg-[#E6F7F6] text-[#0A988F] border border-[#B4EBE6]'
-                    }`}
+                      }`}
                   >
                     {t.badge}
                   </span>
