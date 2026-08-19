@@ -1,1570 +1,951 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Avatar } from '../components/Avatar';
 import { DesaposenteMessenger } from '../components/DesaposenteMessenger';
+import { ProfileCompletion } from '../components/desaposente/ProfileCompletion';
+import { NetworkGraph } from '../components/desaposente/NetworkGraph';
 import {
-  CATALOG_INTERESTS,
-  INTEREST_ROLE_LABELS,
-} from '../mock/interestsCatalog';
+  buildConstellationData,
+  getConnectionReasons,
+  getGroupSuggestionsWithoutGroup,
+  getInterestClusters,
+  getRecommendedPeople,
+  NETWORK_GROUPS,
+} from '../services/networkEngine';
+import { CATALOG_INTERESTS, getExpandedProfile } from '../mock/interestsCatalog';
+import { Participant, ParticipantInterestItem, VisibilityLevel } from '../types';
 import {
-  CatalogInterest,
-  InterestRole,
-  ParticipantInterestItem,
-  KnowledgeItem,
-  LearningWishItem,
-  ResumeActivityWishItem,
-  ExperimentWishItem,
-  ConnectionPreference,
-} from '../types';
-import {
-  getDiscoveryRewardSummary,
-  getTopAffinityMatches,
-} from '../services/affinityEngine';
-import {
-  Sparkles,
-  HeartHandshake,
-  Users,
   Compass,
-  CheckCircle2,
-  Plus,
-  Trash2,
-  ChevronRight,
-  ChevronLeft,
-  Shield,
-  Clock,
-  MapPin,
-  Flame,
-  HelpCircle,
-  Eye,
-  ArrowRight,
-  Smile,
-  GraduationCap,
-  BookOpen,
-  Briefcase,
+  Users,
   Layers,
   MessageSquare,
-  Send,
+  Orbit,
+  Sparkles,
+  CheckCircle2,
+  Plus,
+  Search,
+  ArrowRight,
+  Shield,
 } from 'lucide-react';
+
+type RedeTab =
+  | 'perfil_agora'
+  | 'pessoas_recomendadas'
+  | 'interesses_grupos'
+  | 'conversas_conexoes'
+  | 'minha_constelacao';
+
+const TAB_ITEMS: { id: RedeTab; label: string; icon: React.ReactNode }[] = [
+  { id: 'perfil_agora', label: 'Meu Perfil de Agora', icon: <Compass className="w-3.5 h-3.5" /> },
+  { id: 'pessoas_recomendadas', label: 'Pessoas Recomendadas', icon: <Users className="w-3.5 h-3.5" /> },
+  { id: 'interesses_grupos', label: 'Interesses & Grupos', icon: <Layers className="w-3.5 h-3.5" /> },
+  { id: 'conversas_conexoes', label: 'Conversas & Conexoes', icon: <MessageSquare className="w-3.5 h-3.5" /> },
+  { id: 'minha_constelacao', label: 'Minha Constelacao', icon: <Orbit className="w-3.5 h-3.5" /> },
+];
+
+const VISIBILITY_LABEL: Record<VisibilityLevel, string> = {
+  private: 'So eu',
+  connections: 'Minhas conexoes',
+  community: 'Comunidade',
+};
+
+const INTENT_OPTIONS = [
+  { id: 'queroAprender', label: 'Quero aprender', role: 'quero_aprender' as const },
+  { id: 'queroPraticar', label: 'Quero praticar junto', role: 'praticar_com_outros' as const },
+  { id: 'possoEnsinar', label: 'Posso ensinar / compartilhar', role: 'posso_ensinar' as const },
+  { id: 'apenasInteresse', label: 'Apenas gosto / tenho interesse', role: 'conversar' as const },
+];
+
+const EXPERIENCE_LEVELS = [
+  { id: 'iniciante', label: 'Estou comecando' },
+  { id: 'intermediario', label: 'Tenho alguma experiencia' },
+  { id: 'avancado', label: 'Tenho bastante experiencia' },
+] as const;
+
+const GROUP_CATEGORY_FILTERS = [
+  'Todos',
+  'Musica',
+  'Artes',
+  'Gastronomia',
+  'Esportes',
+  'Natureza',
+  'Tecnologia',
+  'Viagens',
+  'Aprendizagem',
+  'Voluntariado',
+  'Bem-estar',
+];
 
 export const DesaposenteRedeView: React.FC = () => {
   const {
     currentParticipant,
     expandedProfile,
+    updateExpandedProfile,
     saveInterestItem,
-    removeInterestItem,
-    addKnowledgeItem,
-    removeKnowledgeItem,
-    addLearningWish,
-    removeLearningWish,
-    addResumeActivity,
-    removeResumeActivity,
-    addExperimentWish,
-    removeExperimentWish,
-    setConnectionPreferences,
-    setAvailabilitySchedule,
-    setPrivacySettings,
-    navigateTo,
-    setIsPrevixOpen,
-    setPrevixContextKey,
-    peerConversations,
-    activePeerConversationId,
     setActivePeerConversationId,
-    reconnectionStatusMap,
     sendReconnectionRequest,
-    acceptReconnectionRequest,
+    peerConversations,
   } = useApp();
 
-  // Navigation steps inside "Desaposente sua Rede"
-  // 'landing' | 'wizard' | 'reward' | 'connections' | 'messenger'
-  const [currentStep, setCurrentStep] = useState<
-    'landing' | 'wizard' | 'reward' | 'connections' | 'messenger'
-  >('landing');
+  const [activeTab, setActiveTab] = useState<RedeTab>('perfil_agora');
+  const [searchPeople, setSearchPeople] = useState('');
+  const [selectedInterestId, setSelectedInterestId] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [graphDepth, setGraphDepth] = useState<1 | 2 | 3>(1);
+  const [showListAlternative, setShowListAlternative] = useState(false);
 
-  const totalUnreadMessages = peerConversations.reduce(
-    (acc, c) => acc + (c.unreadCount || 0),
-    0
+  const [groupCategory, setGroupCategory] = useState('Todos');
+  const [groupIntentFilter, setGroupIntentFilter] = useState<'todos' | 'aprender' | 'praticar' | 'ensinar' | 'conhecer'>('todos');
+  const [groupFormatFilter, setGroupFormatFilter] = useState<'todos' | 'presencial' | 'online' | 'ambos'>('todos');
+  const [groupLocationFilter, setGroupLocationFilter] = useState<'cidade' | 'regiao' | 'brasil'>('cidade');
+
+  const [newTrajectory, setNewTrajectory] = useState({
+    organization: 'Banco do Brasil',
+    unitName: '',
+    role: '',
+    city: currentParticipant.city,
+    state: currentParticipant.state,
+    startYear: 2000,
+    endYear: 2005,
+    projectHighlights: '',
+  });
+
+  const selectedInterest = selectedInterestId
+    ? CATALOG_INTERESTS.find((i) => i.id === selectedInterestId)
+    : null;
+
+  const recommended = useMemo(() => {
+    const list = getRecommendedPeople(currentParticipant.id, 18);
+    if (!searchPeople.trim()) return list;
+    const q = searchPeople.toLowerCase();
+    return list.filter((item) => {
+      return (
+        item.participant.name.toLowerCase().includes(q) ||
+        item.commonInterests.join(' ').toLowerCase().includes(q) ||
+        item.reasons.some((r) => r.message.toLowerCase().includes(q))
+      );
+    });
+  }, [currentParticipant.id, searchPeople]);
+
+  const interestClusters = useMemo(() => getInterestClusters(currentParticipant.id), [currentParticipant.id]);
+
+  const filteredClusters = useMemo(() => {
+    return interestClusters.filter((cluster) => {
+      const group = cluster.relatedGroup;
+      const byCategory = groupCategory === 'Todos' || group?.category === groupCategory;
+      if (!byCategory) return false;
+
+      if (groupIntentFilter === 'aprender' && cluster.learnCount <= 0) return false;
+      if (groupIntentFilter === 'praticar' && cluster.practiceCount <= 0) return false;
+      if (groupIntentFilter === 'ensinar' && cluster.teachCount <= 0) return false;
+      if (groupIntentFilter === 'conhecer' && cluster.total <= 0) return false;
+
+      if (groupFormatFilter !== 'todos' && group && group.modality !== groupFormatFilter) return false;
+
+      if (groupLocationFilter === 'cidade' && group && group.cityScope !== 'local') return false;
+      if (groupLocationFilter === 'regiao' && group && group.cityScope === 'national') return false;
+
+      return true;
+    });
+  }, [groupFormatFilter, groupIntentFilter, groupCategory, groupLocationFilter, interestClusters]);
+
+  const profileCompletion = useMemo(() => {
+    const checks = [
+      !!expandedProfile.profileNow?.shortBio,
+      expandedProfile.trajectory.length > 0,
+      !!expandedProfile.profileNow?.currentCity,
+      expandedProfile.interests.length > 0,
+      expandedProfile.interests.some((it) => it.intents?.queroAprender),
+      expandedProfile.interests.some((it) => it.intents?.possoEnsinar),
+      !!expandedProfile.profileNow?.inPersonAvailability || !!expandedProfile.profileNow?.onlineAvailability,
+      expandedProfile.connectionPreferences.length > 0,
+    ];
+
+    const done = checks.filter(Boolean).length;
+    const total = checks.length;
+    const percentage = Math.round((done / total) * 100);
+    return {
+      percentage,
+      remainingCount: total - done,
+    };
+  }, [expandedProfile]);
+
+  const constellation = useMemo(
+    () => buildConstellationData(currentParticipant.id, graphDepth),
+    [currentParticipant.id, graphDepth]
   );
 
-  // Wizard active sub-step: 1 to 8
-  const [wizardStep, setWizardStep] = useState<number>(1);
+  const selectedNode = selectedNodeId
+    ? constellation.nodes.find((node) => node.id === selectedNodeId)
+    : null;
 
-  // Selected interest for deep configuring roles modal/drawer
-  const [editingInterest, setEditingInterest] = useState<CatalogInterest | null>(
-    null
-  );
-  const [tempRoles, setTempRoles] = useState<InterestRole[]>([]);
+  const selectedPerson = selectedNode?.type === 'pessoa'
+    ? getPersonFromNode(selectedNode.id)
+    : null;
 
-  // Input states for knowledge, learning, resume, experiment
-  const [newKnowledgeTitle, setNewKnowledgeTitle] = useState('');
-  const [newKnowledgeCategory, setNewKnowledgeCategory] = useState('Geral');
-  const [newLearningText, setNewLearningText] = useState('');
-  const [newResumeText, setNewResumeText] = useState('');
-  const [newExperimentText, setNewExperimentText] = useState('');
-  const [customInterestName, setCustomInterestName] = useState('');
-  const [isAddingCustomInterest, setIsAddingCustomInterest] = useState(false);
+  const selectedPersonReasons = selectedPerson
+    ? getConnectionReasons(currentParticipant, selectedPerson)
+    : [];
 
-  // Computed summary and matches
-  const rewardSummary = getDiscoveryRewardSummary(currentParticipant.id);
-  const topMatches = getTopAffinityMatches(currentParticipant.id);
+  const unreadCount = peerConversations.reduce((acc, conv) => acc + conv.unreadCount, 0);
 
-  // Helper for opening role modal
-  const handleOpenInterestConfig = (interest: CatalogInterest) => {
-    const existing = expandedProfile.interests.find(
-      (i) => i.interestId === interest.id
-    );
-    setTempRoles(existing ? [...existing.roles] : ['quero_praticar']);
-    setEditingInterest(interest);
+  const updateFieldVisibility = (field: 'about' | 'trajectory' | 'interests' | 'knowledge' | 'learning' | 'availability', value: VisibilityLevel) => {
+    updateExpandedProfile((prev) => ({
+      ...prev,
+      fieldVisibility: {
+        about: prev.fieldVisibility?.about || 'community',
+        trajectory: prev.fieldVisibility?.trajectory || 'connections',
+        interests: prev.fieldVisibility?.interests || 'community',
+        knowledge: prev.fieldVisibility?.knowledge || 'connections',
+        learning: prev.fieldVisibility?.learning || 'connections',
+        availability: prev.fieldVisibility?.availability || 'connections',
+        [field]: value,
+      },
+    }));
   };
 
-  const handleSaveInterestRoles = () => {
-    if (!editingInterest) return;
-    saveInterestItem({
-      interestId: editingInterest.id,
-      roles: tempRoles.length > 0 ? tempRoles : ['quero_praticar'],
-      customName: editingInterest.name,
-    });
-    setEditingInterest(null);
+  const updateProfileNow = (patch: Partial<NonNullable<typeof expandedProfile.profileNow>>) => {
+    updateExpandedProfile((prev) => ({
+      ...prev,
+      profileNow: {
+        shortBio: prev.profileNow?.shortBio || '',
+        currentCity: prev.profileNow?.currentCity || currentParticipant.city,
+        region: prev.profileNow?.region || currentParticipant.region,
+        inPersonAvailability: prev.profileNow?.inPersonAvailability ?? true,
+        onlineAvailability: prev.profileNow?.onlineAvailability ?? true,
+        travelAvailability: prev.profileNow?.travelAvailability ?? false,
+        openToMeetPeople: prev.profileNow?.openToMeetPeople ?? true,
+        ...patch,
+      },
+    }));
   };
 
-  const handleAddCustomInterest = () => {
-    if (!customInterestName.trim()) return;
-    const newId = `custom_${Date.now()}`;
-    saveInterestItem({
-      interestId: newId,
-      roles: ['quero_praticar', 'conversar'],
-      customName: customInterestName.trim(),
-    });
-    setCustomInterestName('');
-    setIsAddingCustomInterest(false);
-  };
-
-  const handleToggleConnectionPreference = (pref: ConnectionPreference) => {
-    const current = expandedProfile.connectionPreferences;
-    if (current.includes(pref)) {
-      setConnectionPreferences(current.filter((p) => p !== pref));
-    } else {
-      setConnectionPreferences([...current, pref]);
+  const handleInterestToggle = (interestId: string) => {
+    const existing = expandedProfile.interests.find((it) => it.interestId === interestId);
+    if (!existing) {
+      saveInterestItem({
+        interestId,
+        roles: ['quero_praticar'],
+        intents: {
+          queroAprender: false,
+          queroPraticar: true,
+          possoEnsinar: false,
+          apenasInteresse: false,
+        },
+        experienceLevel: 'iniciante',
+        visibility: 'community',
+      });
     }
+    setSelectedInterestId(interestId);
   };
 
-  const connectionPreferenceLabels: { id: ConnectionPreference; label: string; icon: string }[] = [
-    { id: 'colegas', label: 'Antigos colegas de trabalho no BB/PREVI', icon: '🏛️' },
-    { id: 'mesmos_hobbies', label: 'Pessoas com os mesmos hobbies e gostos', icon: '🎸' },
-    { id: 'aprender_com_outros', label: 'Pessoas que possam me ensinar algo novo', icon: '🎓' },
-    { id: 'ensinar', label: 'Pessoas interessadas no que eu sei', icon: '💡' },
-    { id: 'proximos', label: 'Pessoas próximas de onde moro', icon: '📍' },
-    { id: 'presencial', label: 'Pessoas para atividades presenciais', icon: '☕' },
-    { id: 'online', label: 'Pessoas para conversas e encontros on-line', icon: '💻' },
-    { id: 'grupos_pratica', label: 'Pessoas para formar grupos de prática', icon: '🤝' },
-    { id: 'voluntariado', label: 'Pessoas interessadas em voluntariado e impacto social', icon: '🌱' },
-    { id: 'intergeracional', label: 'Pessoas de outras gerações (jovens e adultos)', icon: '✨' },
-    { id: 'novas_amizades', label: 'Fazer novas amizades sem pressa', icon: '😊' },
-  ];
+  const handleInterestIntentChange = (
+    interestId: string,
+    field: 'queroAprender' | 'queroPraticar' | 'possoEnsinar' | 'apenasInteresse',
+    value: boolean
+  ) => {
+    const current = expandedProfile.interests.find((it) => it.interestId === interestId);
+    const intents = {
+      queroAprender: current?.intents?.queroAprender || false,
+      queroPraticar: current?.intents?.queroPraticar || false,
+      possoEnsinar: current?.intents?.possoEnsinar || false,
+      apenasInteresse: current?.intents?.apenasInteresse || false,
+      [field]: value,
+    };
+
+    const roles = intentsToRoles(intents);
+
+    saveInterestItem({
+      interestId,
+      customName: current?.customName,
+      roles,
+      intents,
+      experienceLevel: current?.experienceLevel || 'iniciante',
+      visibility: current?.visibility || 'community',
+    });
+  };
+
+  const handleInterestExperienceChange = (
+    interestId: string,
+    experienceLevel: ParticipantInterestItem['experienceLevel']
+  ) => {
+    const current = expandedProfile.interests.find((it) => it.interestId === interestId);
+    if (!current) return;
+
+    saveInterestItem({
+      ...current,
+      experienceLevel,
+    });
+  };
+
+  const addTrajectoryItem = () => {
+    if (!newTrajectory.unitName.trim() || !newTrajectory.role.trim()) return;
+    updateExpandedProfile((prev) => ({
+      ...prev,
+      trajectory: [
+        ...prev.trajectory,
+        {
+          id: `traj_${Date.now()}`,
+          participantId: prev.participantId,
+          organization: newTrajectory.organization,
+          unitName: newTrajectory.unitName,
+          role: newTrajectory.role,
+          city: newTrajectory.city,
+          state: newTrajectory.state,
+          startYear: newTrajectory.startYear,
+          endYear: newTrajectory.endYear,
+          projectHighlights: newTrajectory.projectHighlights,
+        },
+      ],
+    }));
+
+    setNewTrajectory((prev) => ({
+      ...prev,
+      unitName: '',
+      role: '',
+      projectHighlights: '',
+    }));
+  };
+
+  const startConversation = (participant: Participant) => {
+    sendReconnectionRequest(participant);
+    setActivePeerConversationId(`conv_${participant.id}`);
+    setActiveTab('conversas_conexoes');
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8 space-y-8 animate-in fade-in">
-      {/* Barra Superior de Navegação Rápida do Desaposente sua Rede */}
-      <div className="bg-white p-2 rounded-2xl border border-[#D9E4EE] shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
-          <button
-            onClick={() => setCurrentStep('landing')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              currentStep === 'landing' || currentStep === 'reward'
-                ? 'bg-[#163A63] text-white shadow-xs'
-                : 'text-[#5A6F82] hover:text-[#163A63] hover:bg-[#F4F7FA]'
-            }`}
-          >
-            <Compass className="w-3.5 h-3.5" />
-            <span>Descobrir & Afinidades</span>
-          </button>
-
-          <button
-            onClick={() => setCurrentStep('connections')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              currentStep === 'connections'
-                ? 'bg-[#163A63] text-white shadow-xs'
-                : 'text-[#5A6F82] hover:text-[#163A63] hover:bg-[#F4F7FA]'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            <span>Pessoas Recomendadas</span>
-          </button>
-
-          <button
-            onClick={() => setCurrentStep('messenger')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 relative ${
-              currentStep === 'messenger'
-                ? 'bg-[#163A63] text-white shadow-xs'
-                : 'text-[#5A6F82] hover:text-[#163A63] hover:bg-[#F4F7FA]'
-            }`}
-          >
-            <MessageSquare className="w-3.5 h-3.5 text-[#12B8AE]" />
-            <span>Conversar & Conexões (Messenger)</span>
-            {totalUnreadMessages > 0 && (
-              <span className="px-1.5 py-0.2 bg-[#12B8AE] text-white text-[10px] font-black rounded-full">
-                {totalUnreadMessages}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => {
-              setCurrentStep('wizard');
-              setWizardStep(1);
-            }}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              currentStep === 'wizard'
-                ? 'bg-[#163A63] text-white shadow-xs'
-                : 'text-[#5A6F82] hover:text-[#163A63] hover:bg-[#F4F7FA]'
-            }`}
-          >
-            <Shield className="w-3.5 h-3.5 text-[#12B8AE]" />
-            <span>Meu Eu de Agora (LGPD)</span>
-          </button>
+    <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8 space-y-7">
+      <section className="bg-gradient-to-br from-[#163A63] via-[#1E466F] to-[#164E7A] rounded-3xl p-8 sm:p-10 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-[#12B8AE]/10 rounded-full blur-3xl" />
+        <div className="relative z-10 max-w-4xl space-y-4">
+          <span className="inline-flex px-3 py-1 rounded-full border border-[#12B8AE]/50 bg-[#12B8AE]/20 text-[#B4EBE6] text-xs font-bold">
+            REDE VIVA DE CONEXOES
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">DESAPOSENTE SUA REDE</h1>
+          <p className="text-sm sm:text-base text-[#D9E4EE]">
+            Pessoas, historias, interesses e novas experiencias esperando para se conectar com voce.
+          </p>
+          <p className="text-xs sm:text-sm text-[#D9E4EE]/95">
+            Conte um pouco mais sobre quem voce e hoje. Quanto mais voce compartilha seus interesses, conhecimentos e experiencias, melhores serao as conexoes que o Vivendo Mais PREVI podera encontrar para voce.
+          </p>
         </div>
+      </section>
 
-        <div className="hidden md:flex items-center gap-2 text-xs text-[#5A6F82] pr-2">
-          <Shield className="w-3.5 h-3.5 text-[#12B8AE]" />
-          <span>Duplo consentimento ativo</span>
-        </div>
-      </div>
-
-      {/* ============================================================
-          1. TELA INICIAL / LANDING DA EXPERIÊNCIA
-         ============================================================ */}
-      {currentStep === 'landing' && (
-        <div className="space-y-8">
-          {/* Hero Banner Convidativo */}
-          <div className="bg-gradient-to-br from-[#163A63] via-[#1E466F] to-[#164E7A] text-white rounded-3xl p-8 sm:p-12 shadow-xl relative overflow-hidden">
-            {/* Background Aesthetic Elements */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-[#12B8AE]/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-[#B4EBE6]/10 rounded-full blur-2xl pointer-events-none" />
-
-            <div className="relative z-10 max-w-3xl space-y-6">
-              {/* Concept Tag: Solidão, aqui não! (Comunicação positiva) */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#12B8AE]/20 border border-[#12B8AE]/40 rounded-full text-[#B4EBE6] text-xs font-bold uppercase tracking-wider">
-                <HeartHandshake className="w-4 h-4 text-[#12B8AE]" />
-                <span>Solidão, aqui não! • Vínculos & Vitalidade</span>
-              </div>
-
-              <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
-                DESAPOSENTE SUA REDE
-              </h1>
-
-              <p className="text-lg sm:text-xl text-[#D9E4EE] font-medium leading-relaxed">
-                "Pessoas, histórias, interesses e novas experiências esperando para se conectar com você."
-              </p>
-
-              <p className="text-sm text-[#D9E4EE]/90 leading-relaxed max-w-2xl">
-                Conte um pouco mais sobre quem você é hoje. O PREVIX e a comunidade Vivendo Mais vão ajudar você a encontrar antigos colegas de trajetória, novas amizades, grupos de prática e experiências sob medida para o seu momento.
-              </p>
-
-              <div className="flex flex-wrap items-center gap-4 pt-4">
-                <button
-                  onClick={() => {
-                    setCurrentStep('wizard');
-                    setWizardStep(1);
-                  }}
-                  className="px-8 py-4 bg-[#12B8AE] hover:bg-[#0A988F] text-[#163A63] hover:text-white font-black text-sm tracking-wider uppercase rounded-2xl shadow-lg transition-all transform hover:scale-105 flex items-center gap-3"
-                >
-                  <Sparkles className="w-5 h-5" />
-                  <span>Quero ampliar minha rede</span>
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-
-                <button
-                  onClick={() => {
-                    setPrevixContextKey('desaposente_rede');
-                    setIsPrevixOpen(true);
-                  }}
-                  className="px-6 py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl border border-white/20 text-sm font-bold transition-colors flex items-center gap-2"
-                >
-                  <Smile className="w-4 h-4 text-[#12B8AE]" />
-                  <span>Conversar com o PREVIX</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Os 7 Pilares do "Meu Eu de Agora" (Visão Geral de Descoberta) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-3xl border border-[#D9E4EE] shadow-xs space-y-3 hover:border-[#12B8AE] transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-[#E6F7F6] text-[#0A988F] flex items-center justify-center text-xl font-bold">
-                🎸
-              </div>
-              <h3 className="font-extrabold text-[#163A63] text-base">
-                Do que você gosta hoje?
-              </h3>
-              <p className="text-xs text-[#5A6F82] leading-relaxed">
-                Música, marcenaria, caminhadas, tecnologia, viagens, gastronomia ou artesanato. Escolha o que faz seus olhos brilharem.
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-3xl border border-[#D9E4EE] shadow-xs space-y-3 hover:border-[#12B8AE] transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-[#E6F7F6] text-[#0A988F] flex items-center justify-center text-xl font-bold">
-                💡
-              </div>
-              <h3 className="font-extrabold text-[#163A63] text-base">
-                O que você sabe & quer aprender?
-              </h3>
-              <p className="text-xs text-[#5A6F82] leading-relaxed">
-                Todo mundo tem algo valioso para compartilhar e algo novo para experimentar. Conecte-se pela troca mútua de saberes.
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-3xl border border-[#D9E4EE] shadow-xs space-y-3 hover:border-[#12B8AE] transition-all">
-              <div className="w-12 h-12 rounded-2xl bg-[#E6F7F6] text-[#0A988F] flex items-center justify-center text-xl font-bold">
-                🛡️
-              </div>
-              <h3 className="font-extrabold text-[#163A63] text-base">
-                Privacidade & Ritmo Próprio
-              </h3>
-              <p className="text-xs text-[#5A6F82] leading-relaxed">
-                Você define exatamente como e para quem deseja aparecer. Nenhum telefone ou endereço é exposto sem sua autorização explícita.
-              </p>
-            </div>
-          </div>
-
-          {/* Quick Preview of What the User Already Configured */}
-          {expandedProfile.interests.length > 0 && (
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#D9E4EE] shadow-xs space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EEF3F7] pb-4">
-                <div>
-                  <span className="text-xs font-bold text-[#164E7A] uppercase tracking-wider">
-                    SEU PERFIL ATUAL
-                  </span>
-                  <h2 className="text-xl font-extrabold text-[#163A63]">
-                    Meu Eu de Agora
-                  </h2>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => {
-                      setCurrentStep('wizard');
-                      setWizardStep(1);
-                    }}
-                    className="px-4 py-2 bg-[#F4F7FA] hover:bg-[#E6F7F6] text-[#163A63] font-bold text-xs rounded-xl border border-[#D9E4EE] transition-colors"
-                  >
-                    Editar Informações
-                  </button>
-                  <button
-                    onClick={() => setCurrentStep('reward')}
-                    className="px-4 py-2 bg-[#12B8AE] hover:bg-[#0A988F] text-[#163A63] font-bold text-xs rounded-xl transition-colors flex items-center gap-1.5"
-                  >
-                    <span>Ver Oportunidades Descobertas</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-                {/* Interesses */}
-                <div className="space-y-2">
-                  <span className="font-bold text-[#5A6F82] block">Interesses Selecionados:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {expandedProfile.interests.map((item) => {
-                      const cat = CATALOG_INTERESTS.find((c) => c.id === item.interestId);
-                      return (
-                        <span
-                          key={item.interestId}
-                          className="px-2.5 py-1 bg-[#E6F7F6] text-[#163A63] font-bold rounded-lg border border-[#B4EBE6]"
-                        >
-                          {cat ? `${cat.icon} ${cat.name}` : item.customName || item.interestId}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* O que pode compartilhar */}
-                <div className="space-y-2">
-                  <span className="font-bold text-[#5A6F82] block">Posso Compartilhar:</span>
-                  {expandedProfile.knowledgeItems.length > 0 ? (
-                    <ul className="space-y-1 text-[#2C3E50]">
-                      {expandedProfile.knowledgeItems.map((k) => (
-                        <li key={k.id} className="flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#12B8AE] shrink-0" />
-                          <span>{k.title}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <span className="text-[#5A6F82] italic">Nenhum saber cadastrado ainda.</span>
-                  )}
-                </div>
-
-                {/* O que quer aprender */}
-                <div className="space-y-2">
-                  <span className="font-bold text-[#5A6F82] block">Quero Aprender:</span>
-                  {expandedProfile.learningWishes.length > 0 ? (
-                    <ul className="space-y-1 text-[#2C3E50]">
-                      {expandedProfile.learningWishes.map((w) => (
-                        <li key={w.id} className="flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-[#12B8AE] shrink-0" />
-                          <span>{w.text}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <span className="text-[#5A6F82] italic">Nenhum desejo cadastrado ainda.</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ============================================================
-          2. EXPERIÊNCIA PROGRESSIVA DO "MEU EU DE AGORA" (WIZARD)
-         ============================================================ */}
-      {currentStep === 'wizard' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-10 border border-[#D9E4EE] shadow-sm space-y-8">
-          {/* Top Wizard Navigation Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EEF3F7] pb-6">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-bold text-[#164E7A] uppercase tracking-wider mb-1">
-                <span>Meu Eu de Agora</span>
-                <span>•</span>
-                <span>Etapa {wizardStep} de 8</span>
-              </div>
-              <h2 className="text-2xl font-black text-[#163A63]">
-                {wizardStep === 1 && 'Quem Fui Profissionalmente & Quem Sou Hoje'}
-                {wizardStep === 2 && 'Do que você mais gosta? (Seus Interesses)'}
-                {wizardStep === 3 && 'O que você aprendeu e pode compartilhar?'}
-                {wizardStep === 4 && 'O que você sempre quis aprender?'}
-                {wizardStep === 5 && 'O que gostaria de voltar a fazer ou experimentar?'}
-                {wizardStep === 6 && 'Com quem você gostaria de se conectar?'}
-                {wizardStep === 7 && 'Sua Disponibilidade & Deslocamento'}
-                {wizardStep === 8 && 'Como você quer aparecer (Privacidade & LGPD)'}
-              </h2>
-            </div>
-
-            {/* Step Progress Pills */}
-            <div className="flex items-center gap-1.5">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setWizardStep(s)}
-                  title={`Ir para etapa ${s}`}
-                  className={`w-7 h-2 rounded-full transition-all ${
-                    s === wizardStep
-                      ? 'bg-[#12B8AE] w-10'
-                      : s < wizardStep
-                      ? 'bg-[#163A63]'
-                      : 'bg-[#D9E4EE]'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* ============================================================
-              ETAPA 1: QUEM FUI PROFISSIONALMENTE & QUEM SOU HOJE
-             ============================================================ */}
-          {wizardStep === 1 && (
-            <div className="space-y-6 animate-in fade-in">
-              <div className="p-4 bg-[#F4F7FA] rounded-2xl border border-[#D9E4EE] text-xs text-[#2C3E50] leading-relaxed flex items-start gap-3">
-                <Briefcase className="w-5 h-5 text-[#164E7A] shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-[#163A63]">
-                    Sua história profissional no Banco do Brasil e PREVI é parte de quem você é.
-                  </p>
-                  <p className="mt-1">
-                    Esses registros conectam você a colegas de dependências históricas no Aposentadograma.
-                  </p>
-                </div>
-              </div>
-
-              {/* Trajetória Funcional Cadastrada */}
-              <div className="space-y-3">
-                <span className="text-xs font-bold text-[#5A6F82] uppercase tracking-wider block">
-                  Sua Trajetória Profissional
+      <section className="bg-white rounded-2xl border border-[#D9E4EE] p-2 flex flex-wrap gap-2">
+        {TAB_ITEMS.map((item) => {
+          const active = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                active
+                  ? 'bg-[#163A63] text-white shadow-xs'
+                  : 'text-[#5A6F82] hover:bg-[#F4F7FA] hover:text-[#163A63]'
+              }`}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+              {item.id === 'conversas_conexoes' && unreadCount > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-[#12B8AE] text-[#163A63] font-black">
+                  {unreadCount}
                 </span>
-                <div className="space-y-3">
-                  {expandedProfile.trajectory.map((item) => (
-                    <div
-                      key={item.id}
-                      className="p-4 bg-white rounded-2xl border border-[#D9E4EE] flex items-center justify-between shadow-2xs"
-                    >
-                      <div className="space-y-1">
-                        <span className="text-[11px] font-bold text-[#12B8AE] uppercase tracking-wide">
-                          {item.organization}
-                        </span>
-                        <h4 className="text-sm font-bold text-[#163A63]">
-                          {item.unitName}
-                        </h4>
-                        <p className="text-xs text-[#5A6F82]">
-                          {item.role} • {item.city}/{item.state}
-                        </p>
-                      </div>
-                      <div className="text-xs font-extrabold text-[#164E7A] bg-[#EEF3F7] px-3 py-1.5 rounded-xl border border-[#D9E4EE]">
-                        {item.startYear} — {item.endYear}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              )}
+            </button>
+          );
+        })}
+      </section>
 
-              <div className="p-4 bg-[#E6F7F6] rounded-2xl border border-[#B4EBE6] text-xs text-[#163A63]">
-                <p className="font-bold">Agora vamos para a melhor parte:</p>
-                <p className="mt-1">
-                  Descobrir o que você gosta de fazer <strong>hoje</strong>, seus hobbies e novos projetos de vida!
+      {activeTab === 'perfil_agora' && (
+        <section className="space-y-6 animate-in fade-in">
+          <ProfileCompletion
+            percentage={profileCompletion.percentage}
+            remainingCount={profileCompletion.remainingCount}
+          />
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-[#D9E4EE] p-5 space-y-5">
+              <div>
+                <h2 className="text-lg font-extrabold text-[#163A63]">Meu Perfil de Agora</h2>
+                <p className="text-xs text-[#5A6F82] mt-1">
+                  Nao estamos apenas atualizando seu cadastro. Estamos ajudando sua rede a descobrir quem voce e hoje.
                 </p>
               </div>
-            </div>
-          )}
-
-          {/* ============================================================
-              ETAPA 2: MEUS INTERESSES (CATÁLOGO DINÂMICO & PAPÉIS)
-             ============================================================ */}
-          {wizardStep === 2 && (
-            <div className="space-y-6 animate-in fade-in">
-              <p className="text-xs text-[#5A6F82]">
-                Clique nos assuntos que despertam sua curiosidade. Para cada um, você poderá definir se deseja aprender, praticar, ensinar ou encontrar parceiros.
-              </p>
-
-              {/* Grid de Interesses do Catálogo */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {CATALOG_INTERESTS.map((cat) => {
-                  const isSelected = expandedProfile.interests.some(
-                    (i) => i.interestId === cat.id
-                  );
-                  return (
-                    <button
-                      key={cat.id}
-                      onClick={() => handleOpenInterestConfig(cat)}
-                      className={`p-3.5 rounded-2xl text-left border transition-all flex flex-col justify-between gap-2 ${
-                        isSelected
-                          ? 'bg-[#E6F7F6] border-[#12B8AE] text-[#163A63] shadow-xs'
-                          : 'bg-[#F4F7FA] border-[#D9E4EE] text-[#5A6F82] hover:bg-white hover:border-[#B4EBE6]'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-2xl">{cat.icon}</span>
-                        {isSelected && (
-                          <CheckCircle2 className="w-4 h-4 text-[#12B8AE]" />
-                        )}
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold block text-[#163A63]">
-                          {cat.name}
-                        </span>
-                        <span className="text-[10px] text-[#5A6F82] block truncate">
-                          {cat.category}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Botão + Outro Interesse */}
-              <div className="pt-2">
-                {!isAddingCustomInterest ? (
-                  <button
-                    onClick={() => setIsAddingCustomInterest(true)}
-                    className="px-4 py-2.5 bg-[#F4F7FA] hover:bg-[#E6F7F6] text-[#163A63] rounded-xl border border-[#D9E4EE] text-xs font-bold flex items-center gap-2 transition-colors"
-                  >
-                    <Plus className="w-4 h-4 text-[#12B8AE]" />
-                    <span>+ Adicionar outro interesse</span>
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-2 max-w-md">
-                    <input
-                      type="text"
-                      value={customInterestName}
-                      onChange={(e) => setCustomInterestName(e.target.value)}
-                      placeholder="Ex: Astrologia, Modelismo, Canoagem..."
-                      className="flex-1 px-3 py-2 bg-[#F4F7FA] border border-[#D9E4EE] rounded-xl text-xs text-[#163A63] focus:border-[#12B8AE] focus:outline-hidden"
-                    />
-                    <button
-                      onClick={handleAddCustomInterest}
-                      className="px-4 py-2 bg-[#12B8AE] text-[#163A63] font-bold text-xs rounded-xl hover:bg-[#0A988F] transition-colors"
-                    >
-                      Adicionar
-                    </button>
-                    <button
-                      onClick={() => setIsAddingCustomInterest(false)}
-                      className="px-3 py-2 text-[#5A6F82] text-xs font-semibold"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Modal / Gaveta de Configuração do Papel no Interesse */}
-              {editingInterest && (
-                <div className="fixed inset-0 bg-[#163A63]/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-                  <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-[#D9E4EE] space-y-6 animate-in zoom-in-95">
-                    <div className="flex items-center gap-3 border-b border-[#EEF3F7] pb-4">
-                      <span className="text-3xl">{editingInterest.icon}</span>
-                      <div>
-                        <h3 className="text-lg font-extrabold text-[#163A63]">
-                          {editingInterest.name}
-                        </h3>
-                        <p className="text-xs text-[#5A6F82]">
-                          O que você gostaria de fazer com esse interesse?
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Multi-escolhas de Papel */}
-                    <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                      {(Object.keys(INTEREST_ROLE_LABELS) as InterestRole[]).map(
-                        (roleKey) => {
-                          const isChecked = tempRoles.includes(roleKey);
-                          return (
-                            <label
-                              key={roleKey}
-                              className={`flex items-center gap-3 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-colors ${
-                                isChecked
-                                  ? 'bg-[#E6F7F6] border-[#12B8AE] text-[#163A63]'
-                                  : 'bg-[#F4F7FA] border-[#D9E4EE] text-[#5A6F82] hover:bg-white'
-                              }`}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setTempRoles([...tempRoles, roleKey]);
-                                  } else {
-                                    setTempRoles(tempRoles.filter((r) => r !== roleKey));
-                                  }
-                                }}
-                                className="w-4 h-4 text-[#12B8AE] rounded-sm focus:ring-[#12B8AE]"
-                              />
-                              <span>{INTEREST_ROLE_LABELS[roleKey]}</span>
-                            </label>
-                          );
-                        }
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-[#EEF3F7]">
-                      <button
-                        onClick={() => {
-                          removeInterestItem(editingInterest.id);
-                          setEditingInterest(null);
-                        }}
-                        className="text-xs text-red-500 font-bold hover:underline"
-                      >
-                        Remover interesse
-                      </button>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setEditingInterest(null)}
-                          className="px-4 py-2 text-xs font-bold text-[#5A6F82] hover:bg-[#F4F7FA] rounded-xl"
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          onClick={handleSaveInterestRoles}
-                          className="px-5 py-2 bg-[#12B8AE] hover:bg-[#0A988F] text-[#163A63] hover:text-white font-bold text-xs rounded-xl shadow-xs"
-                        >
-                          Salvar Escolhas
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ============================================================
-              ETAPA 3: O QUE VOCÊ SABE? (COMPARTILHAMENTO DE SABERES)
-             ============================================================ */}
-          {wizardStep === 3 && (
-            <div className="space-y-6 animate-in fade-in">
-              <div className="p-4 bg-[#E6F7F6] rounded-2xl border border-[#B4EBE6] text-xs text-[#163A63] leading-relaxed flex items-start gap-3">
-                <GraduationCap className="w-5 h-5 text-[#0A988F] shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-extrabold text-sm text-[#163A63]">
-                    "Todo mundo tem algo para compartilhar."
-                  </p>
-                  <p className="mt-1 text-[#2C3E50]">
-                    O que você aprendeu pela vida que teria prazer em compartilhar com outras pessoas? Não precisa ser uma aula formal — pode ser uma conversa, uma dica prática ou uma troca de experiências.
-                  </p>
-                </div>
-              </div>
-
-              {/* Lista de Saberes Cadastrados */}
-              <div className="space-y-3">
-                <span className="text-xs font-bold text-[#5A6F82] uppercase tracking-wider block">
-                  Meus Conhecimentos Compartilháveis
-                </span>
-                {expandedProfile.knowledgeItems.length > 0 ? (
-                  <div className="space-y-2">
-                    {expandedProfile.knowledgeItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="p-3.5 bg-[#F4F7FA] rounded-2xl border border-[#D9E4EE] flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <CheckCircle2 className="w-4 h-4 text-[#12B8AE]" />
-                          <span className="text-xs font-bold text-[#163A63]">
-                            {item.title}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => removeKnowledgeItem(item.id)}
-                          className="p-1.5 text-[#5A6F82] hover:text-red-500 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-[#5A6F82] italic">
-                    Nenhum conhecimento adicionado ainda. Adicione um no campo abaixo!
-                  </p>
-                )}
-              </div>
-
-              {/* Input para adicionar novo conhecimento */}
-              <div className="p-4 bg-white rounded-2xl border border-[#D9E4EE] space-y-3">
-                <span className="text-xs font-bold text-[#163A63] block">
-                  Adicionar conhecimento:
-                </span>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    value={newKnowledgeTitle}
-                    onChange={(e) => setNewKnowledgeTitle(e.target.value)}
-                    placeholder="Ex: Técnicas de marcenaria, violão popular, culinária italiana, finanças..."
-                    className="flex-1 px-3 py-2 bg-[#F4F7FA] border border-[#D9E4EE] rounded-xl text-xs text-[#163A63] focus:border-[#12B8AE] focus:outline-hidden"
-                  />
-                  <button
-                    onClick={() => {
-                      if (!newKnowledgeTitle.trim()) return;
-                      addKnowledgeItem({
-                        id: `k_${Date.now()}`,
-                        title: newKnowledgeTitle.trim(),
-                        category: newKnowledgeCategory,
-                        canShare: true,
-                      });
-                      setNewKnowledgeTitle('');
-                    }}
-                    className="px-4 py-2 bg-[#163A63] hover:bg-[#1E466F] text-[#12B8AE] font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Adicionar</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ============================================================
-              ETAPA 4: O QUE VOCÊ GOSTARIA DE APRENDER?
-             ============================================================ */}
-          {wizardStep === 4 && (
-            <div className="space-y-6 animate-in fade-in">
-              <div className="p-4 bg-[#F4F7FA] rounded-2xl border border-[#D9E4EE] text-xs text-[#2C3E50] leading-relaxed flex items-start gap-3">
-                <BookOpen className="w-5 h-5 text-[#164E7A] shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-extrabold text-sm text-[#163A63]">
-                    "Tem alguma coisa que você sempre quis aprender?"
-                  </p>
-                  <p className="mt-1 text-[#5A6F82]">
-                    Nunca é tarde para novos acordes, novas ferramentas ou novas línguas. O sistema cruzará seus desejos com pessoas dispostas a compartilhar!
-                  </p>
-                </div>
-              </div>
-
-              {/* Lista de Desejos de Aprendizagem */}
-              <div className="space-y-3">
-                <span className="text-xs font-bold text-[#5A6F82] uppercase tracking-wider block">
-                  O Que Desejo Aprender
-                </span>
-                {expandedProfile.learningWishes.length > 0 ? (
-                  <div className="space-y-2">
-                    {expandedProfile.learningWishes.map((item) => (
-                      <div
-                        key={item.id}
-                        className="p-3.5 bg-[#F4F7FA] rounded-2xl border border-[#D9E4EE] flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <Sparkles className="w-4 h-4 text-[#12B8AE]" />
-                          <span className="text-xs font-bold text-[#163A63]">
-                            {item.text}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => removeLearningWish(item.id)}
-                          className="p-1.5 text-[#5A6F82] hover:text-red-500 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-[#5A6F82] italic">
-                    Nenhum desejo de aprendizagem cadastrado ainda.
-                  </p>
-                )}
-              </div>
-
-              {/* Input Adicionar Desejo */}
-              <div className="p-4 bg-white rounded-2xl border border-[#D9E4EE] space-y-3">
-                <span className="text-xs font-bold text-[#163A63] block">
-                  Adicionar desejo de aprender:
-                </span>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    value={newLearningText}
-                    onChange={(e) => setNewLearningText(e.target.value)}
-                    placeholder="Ex: Quero aprender guitarra, marcenaria fina, fotografia com smartphone..."
-                    className="flex-1 px-3 py-2 bg-[#F4F7FA] border border-[#D9E4EE] rounded-xl text-xs text-[#163A63] focus:border-[#12B8AE] focus:outline-hidden"
-                  />
-                  <button
-                    onClick={() => {
-                      if (!newLearningText.trim()) return;
-                      addLearningWish({
-                        id: `lw_${Date.now()}`,
-                        text: newLearningText.trim(),
-                      });
-                      setNewLearningText('');
-                    }}
-                    className="px-4 py-2 bg-[#12B8AE] hover:bg-[#0A988F] text-[#163A63] font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Adicionar</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ============================================================
-              ETAPA 5: VOLTAR A FAZER & EXPERIMENTAR
-             ============================================================ */}
-          {wizardStep === 5 && (
-            <div className="space-y-6 animate-in fade-in">
-              {/* Bloco 1: Voltar a fazer */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#163A63]">
-                  <Flame className="w-4 h-4 text-[#12B8AE]" />
-                  <span>Existe alguma atividade que você gostava de fazer e gostaria de retomar?</span>
-                </div>
-
-                {expandedProfile.resumeActivities.length > 0 && (
-                  <div className="space-y-2">
-                    {expandedProfile.resumeActivities.map((act) => (
-                      <div
-                        key={act.id}
-                        className="p-3 bg-[#F4F7FA] rounded-xl border border-[#D9E4EE] flex items-center justify-between text-xs"
-                      >
-                        <span className="font-semibold text-[#163A63]">{act.text}</span>
-                        <button
-                          onClick={() => removeResumeActivity(act.id)}
-                          className="text-[#5A6F82] hover:text-red-500"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newResumeText}
-                    onChange={(e) => setNewResumeText(e.target.value)}
-                    placeholder="Ex: Voltar a pescar, voltar a tocar violão, voltar a jogar tênis..."
-                    className="flex-1 px-3 py-2 bg-[#F4F7FA] border border-[#D9E4EE] rounded-xl text-xs text-[#163A63]"
-                  />
-                  <button
-                    onClick={() => {
-                      if (!newResumeText.trim()) return;
-                      addResumeActivity({
-                        id: `rw_${Date.now()}`,
-                        text: newResumeText.trim(),
-                      });
-                      setNewResumeText('');
-                    }}
-                    className="px-4 py-2 bg-[#163A63] text-[#12B8AE] font-bold text-xs rounded-xl"
-                  >
-                    Adicionar
-                  </button>
-                </div>
-              </div>
-
-              {/* Bloco 2: O que quer experimentar */}
-              <div className="space-y-3 pt-4 border-t border-[#EEF3F7]">
-                <div className="flex items-center gap-2 text-xs font-bold text-[#163A63]">
-                  <Compass className="w-4 h-4 text-[#12B8AE]" />
-                  <span>Tem alguma coisa que você sempre quis fazer e ainda não teve oportunidade?</span>
-                </div>
-
-                {expandedProfile.experimentWishes.length > 0 && (
-                  <div className="space-y-2">
-                    {expandedProfile.experimentWishes.map((exp) => (
-                      <div
-                        key={exp.id}
-                        className="p-3 bg-[#F4F7FA] rounded-xl border border-[#D9E4EE] flex items-center justify-between text-xs"
-                      >
-                        <span className="font-semibold text-[#163A63]">{exp.text}</span>
-                        <button
-                          onClick={() => removeExperimentWish(exp.id)}
-                          className="text-[#5A6F82] hover:text-red-500"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newExperimentText}
-                    onChange={(e) => setNewExperimentText(e.target.value)}
-                    placeholder="Ex: Viagem cultural em grupo, aula de cerâmica, aprender astronomia..."
-                    className="flex-1 px-3 py-2 bg-[#F4F7FA] border border-[#D9E4EE] rounded-xl text-xs text-[#163A63]"
-                  />
-                  <button
-                    onClick={() => {
-                      if (!newExperimentText.trim()) return;
-                      addExperimentWish({
-                        id: `ew_${Date.now()}`,
-                        text: newExperimentText.trim(),
-                      });
-                      setNewExperimentText('');
-                    }}
-                    className="px-4 py-2 bg-[#12B8AE] text-[#163A63] font-bold text-xs rounded-xl"
-                  >
-                    Adicionar
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ============================================================
-              ETAPA 6: COM QUEM QUER SE CONECTAR?
-             ============================================================ */}
-          {wizardStep === 6 && (
-            <div className="space-y-6 animate-in fade-in">
-              <p className="text-xs text-[#5A6F82]">
-                Selecione os tipos de conexões que você está aberto a cultivar na comunidade Vivendo Mais:
-              </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {connectionPreferenceLabels.map((item) => {
-                  const isChecked = expandedProfile.connectionPreferences.includes(
-                    item.id
-                  );
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleToggleConnectionPreference(item.id)}
-                      className={`p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all ${
-                        isChecked
-                          ? 'bg-[#E6F7F6] border-[#12B8AE] text-[#163A63] shadow-xs'
-                          : 'bg-[#F4F7FA] border-[#D9E4EE] text-[#5A6F82] hover:bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg">{item.icon}</span>
-                        <span className="text-xs font-bold">{item.label}</span>
-                      </div>
-                      {isChecked && (
-                        <CheckCircle2 className="w-4 h-4 text-[#12B8AE] shrink-0" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* ============================================================
-              ETAPA 7: DISPONIBILIDADE & DESLOCAMENTO
-             ============================================================ */}
-          {wizardStep === 7 && (
-            <div className="space-y-6 animate-in fade-in">
-              <p className="text-xs text-[#5A6F82]">
-                Defina seus horários e preferências de encontro para que o PREVIX e os grupos de prática sugiram momentos convenientes:
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-                {/* Período do Dia */}
-                <div className="space-y-2 p-4 bg-[#F4F7FA] rounded-2xl border border-[#D9E4EE]">
-                  <span className="font-bold text-[#163A63] block">Período preferido:</span>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { id: 'manha', label: 'Manhã' },
-                      { id: 'tarde', label: 'Tarde' },
-                      { id: 'noite', label: 'Noite' },
-                    ].map((p) => {
-                      const isSel = expandedProfile.availability.periods.includes(
-                        p.id as any
-                      );
-                      return (
-                        <button
-                          key={p.id}
-                          onClick={() => {
-                            const current = expandedProfile.availability.periods;
-                            const next = isSel
-                              ? current.filter((x) => x !== p.id)
-                              : [...current, p.id as any];
-                            setAvailabilitySchedule({
-                              ...expandedProfile.availability,
-                              periods: next.length > 0 ? next : ['tarde'],
-                            });
-                          }}
-                          className={`px-3 py-1.5 rounded-xl font-bold border transition-colors ${
-                            isSel
-                              ? 'bg-[#12B8AE] text-[#163A63] border-[#12B8AE]'
-                              : 'bg-white text-[#5A6F82] border-[#D9E4EE]'
-                          }`}
-                        >
-                          {p.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Dias da Semana */}
-                <div className="space-y-2 p-4 bg-[#F4F7FA] rounded-2xl border border-[#D9E4EE]">
-                  <span className="font-bold text-[#163A63] block">Dias preferidos:</span>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { id: 'dias_uteis', label: 'Dias úteis (Segunda a Sexta)' },
-                      { id: 'finais_semana', label: 'Finais de semana' },
-                    ].map((d) => {
-                      const isSel = expandedProfile.availability.days.includes(
-                        d.id as any
-                      );
-                      return (
-                        <button
-                          key={d.id}
-                          onClick={() => {
-                            const current = expandedProfile.availability.days;
-                            const next = isSel
-                              ? current.filter((x) => x !== d.id)
-                              : [...current, d.id as any];
-                            setAvailabilitySchedule({
-                              ...expandedProfile.availability,
-                              days: next.length > 0 ? next : ['dias_uteis'],
-                            });
-                          }}
-                          className={`px-3 py-1.5 rounded-xl font-bold border transition-colors ${
-                            isSel
-                              ? 'bg-[#12B8AE] text-[#163A63] border-[#12B8AE]'
-                              : 'bg-white text-[#5A6F82] border-[#D9E4EE]'
-                          }`}
-                        >
-                          {d.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Modalidade */}
-                <div className="space-y-2 p-4 bg-[#F4F7FA] rounded-2xl border border-[#D9E4EE]">
-                  <span className="font-bold text-[#163A63] block">Modalidade:</span>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { id: 'presencial', label: 'Presencial' },
-                      { id: 'online', label: 'On-line' },
-                      { id: 'ambos', label: 'Ambos' },
-                    ].map((m) => {
-                      const isSel = expandedProfile.availability.modality === m.id;
-                      return (
-                        <button
-                          key={m.id}
-                          onClick={() =>
-                            setAvailabilitySchedule({
-                              ...expandedProfile.availability,
-                              modality: m.id as any,
-                            })
-                          }
-                          className={`px-3 py-1.5 rounded-xl font-bold border transition-colors ${
-                            isSel
-                              ? 'bg-[#12B8AE] text-[#163A63] border-[#12B8AE]'
-                              : 'bg-white text-[#5A6F82] border-[#D9E4EE]'
-                          }`}
-                        >
-                          {m.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Raio de Deslocamento */}
-                <div className="space-y-2 p-4 bg-[#F4F7FA] rounded-2xl border border-[#D9E4EE]">
-                  <span className="font-bold text-[#163A63] block">
-                    Raio de deslocamento aproximado:
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {[3, 5, 10, 20, 50].map((r) => {
-                      const isSel =
-                        expandedProfile.availability.displacementRadiusKm === r;
-                      return (
-                        <button
-                          key={r}
-                          onClick={() =>
-                            setAvailabilitySchedule({
-                              ...expandedProfile.availability,
-                              displacementRadiusKm: r,
-                            })
-                          }
-                          className={`px-3 py-1.5 rounded-xl font-bold border transition-colors ${
-                            isSel
-                              ? 'bg-[#12B8AE] text-[#163A63] border-[#12B8AE]'
-                              : 'bg-white text-[#5A6F82] border-[#D9E4EE]'
-                          }`}
-                        >
-                          {r} km
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ============================================================
-              ETAPA 8: PRIVACIDADE & LGPD ("COMO QUERO APARECER")
-             ============================================================ */}
-          {wizardStep === 8 && (
-            <div className="space-y-6 animate-in fade-in">
-              <div className="p-4 bg-[#F4F7FA] rounded-2xl border border-[#D9E4EE] text-xs text-[#2C3E50] leading-relaxed flex items-start gap-3">
-                <Shield className="w-5 h-5 text-[#12B8AE] shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-extrabold text-sm text-[#163A63]">
-                    Central de Privacidade & Visibilidade (LGPD)
-                  </p>
-                  <p className="mt-1 text-[#5A6F82]">
-                    Você tem total controle sobre suas informações. Seu telefone, e-mail e endereço nunca são expostos publicamente.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                {[
-                  {
-                    key: 'showName',
-                    title: 'Mostrar meu nome para outros associados',
-                    desc: 'Exibe seu primeiro nome nas conexões sugeridas.',
-                  },
-                  {
-                    key: 'showPhoto',
-                    title: 'Mostrar minha foto de perfil',
-                    desc: 'Permite que amigos reconheçam você visualmente.',
-                  },
-                  {
-                    key: 'showCity',
-                    title: 'Mostrar minha cidade de residência',
-                    desc: 'Facilita encontrar encontros locais e regionais.',
-                  },
-                  {
-                    key: 'showInterests',
-                    title: 'Mostrar meus interesses',
-                    desc: 'Aparece em comunidades de práticas afins.',
-                  },
-                  {
-                    key: 'showCareerHistory',
-                    title: 'Permitir que antigos colegas me encontrem',
-                    desc: 'Utiliza seu histórico no BB/PREVI para reconexões.',
-                  },
-                  {
-                    key: 'allowInterestSuggestions',
-                    title: 'Receber sugestões do PREVIX por afinidade',
-                    desc: 'Avisa quando surgirem pessoas com mesmos gostos.',
-                  },
-                  {
-                    key: 'receiveInvites',
-                    title: 'Receber convites para grupos de prática',
-                    desc: 'Permite ser convidado para rodas de conversa e práticas.',
-                  },
-                  {
-                    key: 'shareContactAfterConnection',
-                    title: 'Compartilhar contatos somente após aceite mútuo',
-                    desc: 'Garante duplo consentimento antes de trocar contatos.',
-                  },
-                ].map((item) => {
-                  const val = (expandedProfile.privacy as any)[item.key];
-                  return (
-                    <div
-                      key={item.key}
-                      className="p-4 bg-[#F4F7FA] rounded-2xl border border-[#D9E4EE] flex items-start justify-between gap-3"
-                    >
-                      <div>
-                        <span className="font-bold text-[#163A63] block">
-                          {item.title}
-                        </span>
-                        <span className="text-[11px] text-[#5A6F82] block mt-0.5">
-                          {item.desc}
-                        </span>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                        <input
-                          type="checkbox"
-                          checked={val}
-                          onChange={(e) =>
-                            setPrivacySettings({
-                              ...expandedProfile.privacy,
-                              [item.key]: e.target.checked,
-                            })
-                          }
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-[#D9E4EE] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#12B8AE]" />
-                      </label>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Prévia em tempo real de como os outros verão seu perfil */}
-              <div className="p-5 bg-gradient-to-r from-[#F4F7FA] to-[#E6F7F6] rounded-2xl border border-[#D9E4EE] space-y-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#164E7A] block">
-                  Prévia em Tempo Real da sua Apresentação:
-                </span>
-                <div className="bg-white p-4 rounded-2xl border border-[#D9E4EE] flex items-center gap-3 shadow-2xs max-w-md">
-                  <Avatar
-                    src={expandedProfile.privacy.showPhoto ? currentParticipant.avatarUrl : undefined}
-                    name={expandedProfile.privacy.showName ? currentParticipant.name : 'Colega Associado'}
-                    size="lg"
+                <label className="text-xs font-bold text-[#163A63] space-y-1">
+                  Breve apresentacao
+                  <textarea
+                    value={expandedProfile.profileNow?.shortBio || ''}
+                    onChange={(e) => updateProfileNow({ shortBio: e.target.value })}
+                    className="w-full min-h-20 rounded-xl border border-[#D9E4EE] p-2 text-xs text-[#2C3E50]"
+                    placeholder="Conte quem voce e hoje"
                   />
-                  <div>
-                    <h4 className="font-extrabold text-[#163A63] text-sm">
-                      {expandedProfile.privacy.showName
-                        ? currentParticipant.name
-                        : 'Associado(a) PREVI'}
-                    </h4>
-                    <p className="text-xs text-[#5A6F82]">
-                      {expandedProfile.privacy.showCity
-                        ? `${currentParticipant.city}/${currentParticipant.state}`
-                        : 'Localização Protegida'}{' '}
-                      • {currentParticipant.retirementStatus}
-                    </p>
+                </label>
+                <label className="text-xs font-bold text-[#163A63] space-y-1">
+                  Cidade atual
+                  <input
+                    value={expandedProfile.profileNow?.currentCity || currentParticipant.city}
+                    onChange={(e) => updateProfileNow({ currentCity: e.target.value })}
+                    className="w-full rounded-xl border border-[#D9E4EE] p-2 text-xs"
+                  />
+                </label>
+                <label className="text-xs font-bold text-[#163A63] space-y-1">
+                  Regiao
+                  <input
+                    value={expandedProfile.profileNow?.region || currentParticipant.region}
+                    onChange={(e) => updateProfileNow({ region: e.target.value })}
+                    className="w-full rounded-xl border border-[#D9E4EE] p-2 text-xs"
+                  />
+                </label>
+                <div className="text-xs font-bold text-[#163A63] space-y-2">
+                  Disponibilidade
+                  <div className="grid grid-cols-2 gap-2 text-[11px] font-medium text-[#2C3E50]">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={!!expandedProfile.profileNow?.inPersonAvailability}
+                        onChange={(e) => updateProfileNow({ inPersonAvailability: e.target.checked })}
+                      />
+                      Presencial
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={!!expandedProfile.profileNow?.onlineAvailability}
+                        onChange={(e) => updateProfileNow({ onlineAvailability: e.target.checked })}
+                      />
+                      On-line
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={!!expandedProfile.profileNow?.travelAvailability}
+                        onChange={(e) => updateProfileNow({ travelAvailability: e.target.checked })}
+                      />
+                      Viagens
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={!!expandedProfile.profileNow?.openToMeetPeople}
+                        onChange={(e) => updateProfileNow({ openToMeetPeople: e.target.checked })}
+                      />
+                      Conhecer pessoas
+                    </label>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* Bottom Wizard Actions Navigation */}
-          <div className="flex items-center justify-between pt-6 border-t border-[#EEF3F7]">
-            {wizardStep > 1 ? (
-              <button
-                onClick={() => setWizardStep(wizardStep - 1)}
-                className="px-5 py-2.5 rounded-xl border border-[#D9E4EE] text-xs font-bold text-[#163A63] hover:bg-[#F4F7FA] flex items-center gap-1.5 transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span>Voltar etapa</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => setCurrentStep('landing')}
-                className="px-5 py-2.5 rounded-xl border border-[#D9E4EE] text-xs font-bold text-[#5A6F82] hover:bg-[#F4F7FA] transition-colors"
-              >
-                Cancelar
-              </button>
-            )}
+              <div className="pt-2 border-t border-[#EEF3F7] space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-extrabold text-[#163A63]">Trajetoria profissional</h3>
+                  <span className="text-[11px] text-[#5A6F82]">Dados institucionais + complementacao</span>
+                </div>
 
-            {wizardStep < 8 ? (
-              <button
-                onClick={() => setWizardStep(wizardStep + 1)}
-                className="px-6 py-2.5 bg-[#163A63] hover:bg-[#1E466F] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
-              >
-                <span>Avançar</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <button
-                onClick={() => setCurrentStep('reward')}
-                className="px-8 py-3 bg-[#12B8AE] hover:bg-[#0A988F] text-[#163A63] hover:text-white rounded-xl text-xs font-black tracking-wider uppercase flex items-center gap-2 shadow-lg transition-all"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span>Concluir e Descobrir Minhas Conexões</span>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+                <div className="space-y-2">
+                  {expandedProfile.trajectory.map((item) => (
+                    <article key={item.id} className="rounded-xl border border-[#D9E4EE] p-3 bg-[#FAFBFD]">
+                      <p className="text-[11px] text-[#12B8AE] font-bold uppercase">{item.organization}</p>
+                      <p className="text-xs font-bold text-[#163A63]">{item.unitName}</p>
+                      <p className="text-[11px] text-[#5A6F82]">{item.role} � {item.city}/{item.state} � {item.startYear}-{item.endYear}</p>
+                      {item.projectHighlights && <p className="text-[11px] text-[#2C3E50] mt-1">Projeto relevante: {item.projectHighlights}</p>}
+                    </article>
+                  ))}
+                </div>
 
-      {/* ============================================================
-          3. TELA DE RECOMPENSA & DESCOBERTA
-         ============================================================ */}
-      {currentStep === 'reward' && (
-        <div className="space-y-8 animate-in zoom-in-95">
-          {/* Header de Celebração */}
-          <div className="bg-gradient-to-br from-[#163A63] via-[#1E466F] to-[#164E7A] text-white rounded-3xl p-8 sm:p-12 shadow-xl relative overflow-hidden">
-            <div className="relative z-10 max-w-3xl space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#12B8AE]/20 border border-[#12B8AE]/40 rounded-full text-[#B4EBE6] text-xs font-bold">
-                <Sparkles className="w-4 h-4 text-[#12B8AE]" />
-                <span>Perfil Atualizado com Sucesso</span>
-              </div>
-
-              <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
-                OLHA O QUE SUAS HISTÓRIAS E INTERESSES PODEM ABRIR PARA VOCÊ
-              </h2>
-
-              <p className="text-sm sm:text-base text-[#D9E4EE] leading-relaxed">
-                Com base no que você compartilhou, o motor de afinidade do Vivendo Mais encontrou oportunidades reais no ecossistema PREVI:
-              </p>
-            </div>
-          </div>
-
-          {/* Cards de Recompensa Baseados em Dados Reais */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* 1. Trajetória */}
-            <div className="bg-white p-6 rounded-3xl border border-[#D9E4EE] shadow-xs space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-3xl">👥</span>
-                <span className="text-2xl font-black text-[#163A63]">
-                  {rewardSummary.trajectoryCount}
-                </span>
-              </div>
-              <h3 className="font-extrabold text-[#163A63] text-sm">
-                Pessoas da sua trajetória profissional
-              </h3>
-              <p className="text-xs text-[#5A6F82] leading-relaxed">
-                Colegas que trabalharam nas mesmas dependências que você no BB/PREVI nos mesmos períodos.
-              </p>
-            </div>
-
-            {/* 2. Interesses em Comum */}
-            <div className="bg-white p-6 rounded-3xl border border-[#D9E4EE] shadow-xs space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-3xl">🎸</span>
-                <span className="text-2xl font-black text-[#12B8AE]">
-                  {rewardSummary.commonInterestsCount}
-                </span>
-              </div>
-              <h3 className="font-extrabold text-[#163A63] text-sm">
-                Pessoas com interesses em comum
-              </h3>
-              <p className="text-xs text-[#5A6F82] leading-relaxed">
-                Associados apaixonados pelas mesmas áreas que você escolheu cultivar hoje.
-              </p>
-            </div>
-
-            {/* 3. Complementaridade */}
-            <div className="bg-white p-6 rounded-3xl border border-[#D9E4EE] shadow-xs space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-3xl">🪵</span>
-                <span className="text-2xl font-black text-[#0A988F]">
-                  {rewardSummary.complementaryKnowledgeCount}
-                </span>
-              </div>
-              <h3 className="font-extrabold text-[#163A63] text-sm">
-                Oportunidades de troca & aprendizagem
-              </h3>
-              <p className="text-xs text-[#5A6F82] leading-relaxed">
-                Pessoas interessadas em aprender o que você sabe ou ensinar o que você deseja descobrir.
-              </p>
-            </div>
-          </div>
-
-          {/* Call to Action: Explorar Conexões */}
-          <div className="bg-white p-8 rounded-3xl border border-[#D9E4EE] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-xl">
-              <h3 className="text-xl font-extrabold text-[#163A63]">
-                Pronto para ver as pessoas compatíveis?
-              </h3>
-              <p className="text-xs text-[#5A6F82] leading-relaxed">
-                Reconecte-se com colegas ou conheça pessoas afins com total proteção e duplo consentimento.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={() => setCurrentStep('connections')}
-                className="px-6 py-3.5 bg-[#12B8AE] hover:bg-[#0A988F] text-[#163A63] hover:text-white font-extrabold text-xs tracking-wider uppercase rounded-xl shadow-md transition-all flex items-center gap-2"
-              >
-                <Users className="w-4 h-4" />
-                <span>Explorar minhas conexões</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('meu_viver_mais')}
-                className="px-5 py-3.5 bg-[#F4F7FA] hover:bg-[#EEF3F7] text-[#163A63] font-bold text-xs rounded-xl border border-[#D9E4EE] transition-colors"
-              >
-                Voltar ao Meu Viver Mais
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ============================================================
-          4. TELA DE CONEXÕES POR AFINIDADE (EXPLORAÇÃO REAL)
-         ============================================================ */}
-      {currentStep === 'connections' && (
-        <div className="space-y-8 animate-in fade-in">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D9E4EE] pb-4">
-            <div>
-              <span className="text-xs font-bold text-[#164E7A] uppercase tracking-wider">
-                REDE DE AFINIDADES VIVENDO MAIS
-              </span>
-              <h2 className="text-2xl font-black text-[#163A63]">
-                Pessoas e Reencontros Recomendados
-              </h2>
-            </div>
-
-            <button
-              onClick={() => setCurrentStep('reward')}
-              className="text-xs font-bold text-[#164E7A] hover:underline flex items-center gap-1"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span>Voltar ao resumo</span>
-            </button>
-          </div>
-
-          {/* Cards de Afinidade Composta */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {topMatches.map((match) => (
-              <div
-                key={match.participant.id}
-                className="bg-white rounded-3xl p-6 border border-[#D9E4EE] shadow-xs flex flex-col justify-between space-y-4 hover:border-[#12B8AE] transition-all"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar
-                      src={match.participant.avatarUrl}
-                      name={match.participant.name}
-                      size="lg"
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input
+                    value={newTrajectory.organization}
+                    onChange={(e) => setNewTrajectory((prev) => ({ ...prev, organization: e.target.value }))}
+                    placeholder="Empresa (ex.: Banco do Brasil)"
+                    className="rounded-xl border border-[#D9E4EE] p-2 text-xs"
+                  />
+                  <input
+                    value={newTrajectory.unitName}
+                    onChange={(e) => setNewTrajectory((prev) => ({ ...prev, unitName: e.target.value }))}
+                    placeholder="Unidade / diretoria / departamento"
+                    className="rounded-xl border border-[#D9E4EE] p-2 text-xs"
+                  />
+                  <input
+                    value={newTrajectory.role}
+                    onChange={(e) => setNewTrajectory((prev) => ({ ...prev, role: e.target.value }))}
+                    placeholder="Funcao exercida"
+                    className="rounded-xl border border-[#D9E4EE] p-2 text-xs"
+                  />
+                  <input
+                    value={newTrajectory.projectHighlights}
+                    onChange={(e) => setNewTrajectory((prev) => ({ ...prev, projectHighlights: e.target.value }))}
+                    placeholder="Projeto relevante"
+                    className="rounded-xl border border-[#D9E4EE] p-2 text-xs"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      value={newTrajectory.startYear}
+                      onChange={(e) => setNewTrajectory((prev) => ({ ...prev, startYear: Number(e.target.value) }))}
+                      className="rounded-xl border border-[#D9E4EE] p-2 text-xs"
+                      aria-label="Ano inicio"
                     />
+                    <input
+                      type="number"
+                      value={newTrajectory.endYear}
+                      onChange={(e) => setNewTrajectory((prev) => ({ ...prev, endYear: Number(e.target.value) }))}
+                      className="rounded-xl border border-[#D9E4EE] p-2 text-xs"
+                      aria-label="Ano termino"
+                    />
+                  </div>
+                  <button
+                    onClick={addTrajectoryItem}
+                    className="rounded-xl bg-[#163A63] text-white text-xs font-bold px-3 py-2 flex items-center justify-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Adicionar trajeto
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-[#EEF3F7] space-y-3">
+                <h3 className="text-sm font-extrabold text-[#163A63]">
+                  O que voce gosta de fazer, gostaria de aprender ou poderia compartilhar com outras pessoas?
+                </h3>
+
+                <div className="flex flex-wrap gap-2">
+                  {CATALOG_INTERESTS.slice(0, 24).map((interest) => {
+                    const active = expandedProfile.interests.some((i) => i.interestId === interest.id);
+                    return (
+                      <button
+                        key={interest.id}
+                        onClick={() => handleInterestToggle(interest.id)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                          active
+                            ? 'bg-[#E6F7F6] text-[#163A63] border-[#12B8AE]'
+                            : 'bg-white text-[#5A6F82] border-[#D9E4EE] hover:border-[#12B8AE]'
+                        }`}
+                      >
+                        {interest.icon} {interest.name}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {selectedInterest && (
+                  <div className="rounded-2xl border border-[#B4EBE6] bg-[#F8FFFE] p-4 space-y-3">
+                    <p className="text-sm font-extrabold text-[#163A63]">Como esse interesse faz parte da sua vida? ({selectedInterest.name})</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {INTENT_OPTIONS.map((option) => {
+                        const current = expandedProfile.interests.find((it) => it.interestId === selectedInterest.id);
+                        const checked = !!current?.intents?.[option.id as keyof NonNullable<ParticipantInterestItem['intents']>];
+                        return (
+                          <label key={option.id} className="text-xs text-[#2C3E50] rounded-xl border border-[#D9E4EE] p-2 flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e) => handleInterestIntentChange(selectedInterest.id, option.id as any, e.target.checked)}
+                            />
+                            {option.label}
+                          </label>
+                        );
+                      })}
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold text-[#163A63]">Qual e sua experiencia? (opcional)</p>
+                      <div className="flex flex-wrap gap-2">
+                        {EXPERIENCE_LEVELS.map((level) => {
+                          const current = expandedProfile.interests.find((it) => it.interestId === selectedInterest.id);
+                          const active = current?.experienceLevel === level.id;
+                          return (
+                            <button
+                              key={level.id}
+                              onClick={() => handleInterestExperienceChange(selectedInterest.id, level.id)}
+                              className={`px-3 py-1.5 text-xs rounded-full border ${
+                                active
+                                  ? 'bg-[#163A63] text-white border-[#163A63]'
+                                  : 'bg-white text-[#5A6F82] border-[#D9E4EE]'
+                              }`}
+                            >
+                              {level.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <aside className="space-y-4">
+              <div className="bg-white rounded-2xl border border-[#D9E4EE] p-4 space-y-3">
+                <h3 className="text-sm font-extrabold text-[#163A63] flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-[#12B8AE]" />
+                  Quem pode ver esta informacao?
+                </h3>
+                {([
+                  ['about', 'Sobre mim'],
+                  ['trajectory', 'Trajetoria'],
+                  ['interests', 'Interesses'],
+                  ['knowledge', 'Conhecimentos'],
+                  ['learning', 'Quero aprender'],
+                  ['availability', 'Disponibilidade'],
+                ] as const).map(([field, label]) => (
+                  <div key={field} className="space-y-1">
+                    <p className="text-[11px] font-bold text-[#5A6F82]">{label}</p>
+                    <div className="flex gap-1">
+                      {(['private', 'connections', 'community'] as VisibilityLevel[]).map((level) => {
+                        const current = expandedProfile.fieldVisibility?.[field] || 'connections';
+                        const active = current === level;
+                        return (
+                          <button
+                            key={level}
+                            onClick={() => updateFieldVisibility(field, level)}
+                            className={`px-2 py-1 rounded-lg text-[10px] border ${
+                              active
+                                ? 'bg-[#163A63] text-white border-[#163A63]'
+                                : 'bg-white text-[#5A6F82] border-[#D9E4EE]'
+                            }`}
+                          >
+                            {VISIBILITY_LABEL[level]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#D9E4EE] p-4 space-y-2">
+                <h3 className="text-sm font-extrabold text-[#163A63]">PREVIX (estrutura pronta)</h3>
+                <ul className="text-xs text-[#5A6F82] space-y-2">
+                  <li>Encontramos tres pessoas que trabalharam com voce na mesma unidade.</li>
+                  <li>Ha cinco participantes em Brasilia interessados em aprender violao.</li>
+                  <li>Voce quer aprender marcenaria e encontramos duas pessoas proximas que podem compartilhar essa experiencia.</li>
+                </ul>
+              </div>
+            </aside>
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'pessoas_recomendadas' && (
+        <section className="space-y-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl border border-[#D9E4EE] p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-extrabold text-[#163A63]">Pessoas Recomendadas</h2>
+              <p className="text-xs text-[#5A6F82]">Recomendacoes explicaveis por afinidade, complementaridade e trajetoria.</p>
+            </div>
+            <label className="relative w-full md:w-72">
+              <Search className="w-4 h-4 text-[#8FA3B8] absolute left-3 top-2.5" />
+              <input
+                value={searchPeople}
+                onChange={(e) => setSearchPeople(e.target.value)}
+                placeholder="Buscar por pessoa, interesse ou motivo"
+                className="w-full rounded-xl border border-[#D9E4EE] pl-9 pr-3 py-2 text-xs"
+              />
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {recommended.map((item) => {
+              const profile = getExpandedProfile(item.participant.id);
+              const canShowAge = profile.privacy.showName;
+              const topReason = item.reasons.slice(0, 4);
+              return (
+                <article key={item.participant.id} className="bg-white rounded-2xl border border-[#D9E4EE] p-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar src={item.participant.avatarUrl} name={item.participant.name} size="lg" />
                     <div>
-                      <h3 className="font-extrabold text-[#163A63] text-sm">
-                        {match.participant.name}
-                      </h3>
+                      <h3 className="text-sm font-extrabold text-[#163A63]">{item.participant.name}</h3>
                       <p className="text-xs text-[#5A6F82]">
-                        {match.participant.city}/{match.participant.state} • {match.participant.retirementStatus}
+                        {canShowAge ? `${item.participant.age} anos � ` : ''}
+                        {item.participant.city}
                       </p>
                     </div>
                   </div>
 
-                  {/* Motivos da Recomendação */}
-                  <div className="space-y-1.5 pt-2 border-t border-[#EEF3F7]">
-                    {match.reasons.map((r, idx) => (
-                      <div
-                        key={idx}
-                        className="text-[11px] text-[#2C3E50] flex items-start gap-1.5"
-                      >
+                  <div className="text-[11px] text-[#2C3E50] space-y-1">
+                    {item.commonInterests.length > 0 && <p><strong>Interesses em comum:</strong> {item.commonInterests.slice(0, 3).join(', ')}</p>}
+                    {item.professionalRelation && <p><strong>Relacao profissional:</strong> {item.professionalRelation}</p>}
+                    {item.commonGroups.length > 0 && <p><strong>Grupos em comum:</strong> {item.commonGroups.map((g) => g.name).join(', ')}</p>}
+                  </div>
+
+                  <div className="rounded-xl bg-[#F8FAFC] border border-[#EEF3F7] p-3 space-y-1">
+                    <p className="text-[11px] font-bold text-[#163A63]">Por que recomendamos esta pessoa?</p>
+                    {topReason.map((reason, index) => (
+                      <p key={`${reason.code}_${index}`} className="text-[11px] text-[#2C3E50] flex items-start gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#12B8AE] shrink-0 mt-0.5" />
-                        <span>{r}</span>
-                      </div>
+                        {reason.message}
+                      </p>
                     ))}
                   </div>
 
-                  {/* Tags de Interesses em Comum */}
-                  {match.commonInterests.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      {match.commonInterests.map((ci) => (
-                        <span
-                          key={ci}
-                          className="text-[10px] font-bold px-2 py-0.5 bg-[#E6F7F6] text-[#0A988F] rounded-md border border-[#B4EBE6]"
-                        >
-                          {ci}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Botão de Reconectar / Conectar com Consentimento */}
-                {reconnectionStatusMap[match.participant.id] === 'connected' ? (
                   <button
-                    onClick={() => {
-                      setActivePeerConversationId(`conv_${match.participant.id}`);
-                      setCurrentStep('messenger');
-                    }}
-                    className="w-full py-2.5 bg-[#12B8AE] hover:bg-[#0A988F] text-[#163A63] font-black text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5"
+                    onClick={() => startConversation(item.participant)}
+                    className="w-full py-2 rounded-xl bg-[#12B8AE] hover:bg-[#0A988F] text-[#163A63] font-extrabold text-xs transition-all"
                   >
-                    <MessageSquare className="w-4 h-4 text-[#163A63]" />
-                    <span>Conversar no Messenger</span>
+                    Conectar e conversar
                   </button>
-                ) : reconnectionStatusMap[match.participant.id] === 'pending' ? (
-                  <div className="flex items-center gap-2">
-                    <button
-                      disabled
-                      className="flex-1 py-2.5 bg-[#E6F7F6] text-[#0A988F] font-bold text-xs rounded-xl border border-[#B4EBE6] flex items-center justify-center gap-1.5 cursor-default"
-                    >
-                      <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-                      <span>✓ Solicitação Enviada</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setActivePeerConversationId(`conv_${match.participant.id}`);
-                        setCurrentStep('messenger');
-                      }}
-                      className="p-2.5 bg-[#F4F7FA] hover:bg-[#12B8AE] text-[#163A63] font-bold text-xs rounded-xl border border-[#D9E4EE] transition-colors"
-                      title="Ver conversa / histórico"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      sendReconnectionRequest(
-                        match.participant,
-                        match.commonTrajectory?.[0]?.unitName,
-                        match.commonInterests
-                      );
-                    }}
-                    className="w-full py-2.5 bg-[#F4F7FA] hover:bg-[#12B8AE] text-[#163A63] hover:text-white font-bold text-xs rounded-xl border border-[#D9E4EE] hover:border-[#12B8AE] transition-all shadow-2xs flex items-center justify-center gap-1.5"
-                  >
-                    <HeartHandshake className="w-4 h-4 text-[#12B8AE]" />
-                    <span>Solicitar Reconexão Segura</span>
-                  </button>
-                )}
-              </div>
-            ))}
+                </article>
+              );
+            })}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* ============================================================
-          5. TELA DE MENSAGENS E CHAT COM AS CONEXÕES (MESSENGER)
-         ============================================================ */}
-      {currentStep === 'messenger' && (
-        <div className="space-y-6 animate-in fade-in">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D9E4EE] pb-4">
-            <div>
-              <span className="text-xs font-bold text-[#164E7A] uppercase tracking-wider">
-                MESSENGER VIVENDO MAIS
-              </span>
-              <h2 className="text-2xl font-black text-[#163A63]">
-                Área de Conversar com Minhas Conexões
-              </h2>
-              <p className="text-xs text-[#5A6F82] mt-0.5">
-                Troque mensagens seguras, convide para experiências e compartilhe afinidades com seus colegas.
-              </p>
-            </div>
+      {activeTab === 'interesses_grupos' && (
+        <section className="space-y-5 animate-in fade-in">
+          <div className="bg-white rounded-2xl border border-[#D9E4EE] p-5 space-y-2">
+            <h2 className="text-lg font-extrabold text-[#163A63]">Encontre sua turma</h2>
+            <p className="text-xs text-[#5A6F82]">
+              Descubra pessoas que compartilham seus interesses. Participe de um grupo, troque experiencias ou ajude a criar uma nova roda.
+            </p>
+          </div>
 
+          <div className="bg-white rounded-2xl border border-[#D9E4EE] p-4 grid grid-cols-1 xl:grid-cols-4 gap-3">
+            <div>
+              <p className="text-[11px] font-bold text-[#5A6F82] mb-1">Categorias</p>
+              <select value={groupCategory} onChange={(e) => setGroupCategory(e.target.value)} className="w-full rounded-xl border border-[#D9E4EE] p-2 text-xs">
+                {GROUP_CATEGORY_FILTERS.map((cat) => <option key={cat}>{cat}</option>)}
+              </select>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold text-[#5A6F82] mb-1">Quero</p>
+              <select value={groupIntentFilter} onChange={(e) => setGroupIntentFilter(e.target.value as any)} className="w-full rounded-xl border border-[#D9E4EE] p-2 text-xs">
+                <option value="todos">Todos</option>
+                <option value="aprender">Aprender</option>
+                <option value="praticar">Praticar</option>
+                <option value="ensinar">Ensinar / compartilhar</option>
+                <option value="conhecer">Conhecer pessoas</option>
+              </select>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold text-[#5A6F82] mb-1">Formato</p>
+              <select value={groupFormatFilter} onChange={(e) => setGroupFormatFilter(e.target.value as any)} className="w-full rounded-xl border border-[#D9E4EE] p-2 text-xs">
+                <option value="todos">Tanto faz</option>
+                <option value="presencial">Presencial</option>
+                <option value="online">On-line</option>
+                <option value="ambos">Ambos</option>
+              </select>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold text-[#5A6F82] mb-1">Localizacao</p>
+              <select value={groupLocationFilter} onChange={(e) => setGroupLocationFilter(e.target.value as any)} className="w-full rounded-xl border border-[#D9E4EE] p-2 text-xs">
+                <option value="cidade">Minha cidade</option>
+                <option value="regiao">Minha regiao</option>
+                <option value="brasil">Todo o Brasil</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {filteredClusters.map((cluster) => (
+              <article key={cluster.interestId} className="bg-white rounded-2xl border border-[#D9E4EE] p-4 space-y-2">
+                <h3 className="text-sm font-extrabold text-[#163A63]">{cluster.interestName}</h3>
+                <p className="text-xs text-[#5A6F82]">{cluster.total} pessoas interessadas</p>
+                <div className="text-[11px] text-[#2C3E50] space-y-1">
+                  <p>{cluster.learnCount} querem aprender</p>
+                  <p>{cluster.practiceCount} querem praticar</p>
+                  <p>{cluster.teachCount} podem ensinar</p>
+                </div>
+                {cluster.relatedGroup ? (
+                  <div className="rounded-xl border border-[#B4EBE6] bg-[#F8FFFE] p-2">
+                    <p className="text-[11px] font-bold text-[#163A63]">Grupo relacionado: {cluster.relatedGroup.name}</p>
+                    <p className="text-[11px] text-[#5A6F82]">{cluster.relatedGroup.participantIds.length} participantes</p>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-[#FDE68A] bg-[#FFFBEB] p-2 text-[11px] text-[#92400E]">
+                    Sem grupo relacionado no momento.
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setSearchPeople(cluster.interestName);
+                      setActiveTab('pessoas_recomendadas');
+                    }}
+                    className="flex-1 rounded-xl border border-[#D9E4EE] text-xs px-3 py-2 text-[#163A63] font-bold"
+                  >
+                    Ver pessoas
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('conversas_conexoes')}
+                    className="flex-1 rounded-xl bg-[#12B8AE] text-xs px-3 py-2 text-[#163A63] font-bold"
+                  >
+                    Ver grupo
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          {getGroupSuggestionsWithoutGroup(12).slice(0, 3).map((suggestion) => (
+            <div key={suggestion.interestId} className="bg-white rounded-2xl border border-[#FDE68A] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-extrabold text-[#163A63]">Tem turma querendo aparecer!</h3>
+                <p className="text-xs text-[#5A6F82]">Encontramos {suggestion.total} pessoas interessadas em {suggestion.interestName}.</p>
+              </div>
+              <button className="px-4 py-2 rounded-xl bg-[#163A63] text-white text-xs font-bold">Sugerir criacao de grupo</button>
+            </div>
+          ))}
+
+          <div className="bg-white rounded-2xl border border-[#D9E4EE] p-4">
+            <p className="text-xs text-[#5A6F82]">Grupos disponiveis nesta versao demonstrativa: {NETWORK_GROUPS.length}</p>
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'conversas_conexoes' && (
+        <section className="space-y-3 animate-in fade-in">
+          <div className="bg-white rounded-2xl border border-[#D9E4EE] p-4">
+            <h2 className="text-lg font-extrabold text-[#163A63]">Conversas & Conexoes</h2>
+            <p className="text-xs text-[#5A6F82]">
+              Inicie conversa a partir de pessoas recomendadas, interesses ou grupos, com consentimento e privacidade.
+            </p>
+          </div>
+          <DesaposenteMessenger onBackToDiscovery={() => setActiveTab('pessoas_recomendadas')} />
+        </section>
+      )}
+
+      {activeTab === 'minha_constelacao' && (
+        <section className="space-y-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl border border-[#D9E4EE] p-5 space-y-2">
+            <h2 className="text-lg font-extrabold text-[#163A63]">Minha Constelacao</h2>
+            <p className="text-xs text-[#5A6F82]">Veja como pessoas, historias, interesses e experiencias se conectam ao seu redor.</p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-[#D9E4EE] p-3 flex flex-wrap items-center gap-2">
+            {([
+              ['Minha Rede', 1],
+              ['Pessoas', 1],
+              ['Antigos Colegas', 2],
+              ['Interesses', 2],
+              ['Quero Aprender', 2],
+              ['Posso Ensinar', 2],
+              ['Grupos', 3],
+              ['Todos', 3],
+            ] as const).map(([label, depth]) => (
+              <button
+                key={label}
+                onClick={() => setGraphDepth(depth as 1 | 2 | 3)}
+                className={`px-3 py-1.5 rounded-full text-xs border ${
+                  graphDepth === depth ? 'bg-[#163A63] text-white border-[#163A63]' : 'bg-white border-[#D9E4EE] text-[#5A6F82]'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
             <button
-              onClick={() => setCurrentStep('connections')}
-              className="text-xs font-bold text-[#164E7A] hover:underline flex items-center gap-1"
+              onClick={() => setGraphDepth((d) => (d < 3 ? ((d + 1) as 1 | 2 | 3) : d))}
+              className="ml-auto px-3 py-1.5 rounded-full text-xs border border-[#12B8AE] text-[#163A63] bg-[#E6F7F6]"
             >
-              <Users className="w-4 h-4 text-[#12B8AE]" />
-              <span>Ver mais colegas recomendados</span>
+              Explorar mais conexoes
+            </button>
+            <button
+              onClick={() => setShowListAlternative((prev) => !prev)}
+              className="px-3 py-1.5 rounded-full text-xs border border-[#D9E4EE] text-[#163A63]"
+            >
+              {showListAlternative ? 'Ver grafo' : 'Alternativa em lista'}
             </button>
           </div>
 
-          <DesaposenteMessenger onBackToDiscovery={() => setCurrentStep('connections')} />
-        </div>
+          {!showListAlternative ? (
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+              <div className="xl:col-span-3">
+                <NetworkGraph
+                  nodes={constellation.nodes}
+                  edges={constellation.edges}
+                  selectedNodeId={selectedNodeId}
+                  onSelectNode={setSelectedNodeId}
+                />
+              </div>
+
+              <aside className="bg-white rounded-2xl border border-[#D9E4EE] p-4 space-y-3">
+                <h3 className="text-sm font-extrabold text-[#163A63]">Detalhes do no</h3>
+                {!selectedNode && (
+                  <p className="text-xs text-[#5A6F82]">Clique em uma pessoa, interesse, grupo, unidade ou cidade para destacar conexoes.</p>
+                )}
+                {selectedNode && (
+                  <>
+                    <div className="rounded-xl bg-[#F8FAFC] border border-[#EEF3F7] p-3">
+                      <p className="text-[11px] text-[#5A6F82] uppercase font-bold">Tipo</p>
+                      <p className="text-sm font-extrabold text-[#163A63]">{selectedNode.type}</p>
+                      <p className="text-xs text-[#2C3E50]">{selectedNode.label}</p>
+                    </div>
+
+                    {selectedNode.type === 'interesse' && (
+                      <div className="text-xs text-[#2C3E50] space-y-1">
+                        <p>?? aprender</p>
+                        <p>?? praticar</p>
+                        <p>?? ensinar</p>
+                      </div>
+                    )}
+
+                    {selectedPerson && (
+                      <div className="space-y-2">
+                        <h4 className="text-xs font-extrabold text-[#163A63]">{selectedPerson.name}</h4>
+                        <p className="text-[11px] text-[#5A6F82]">Voces possuem {selectedPersonReasons.length} ponto(s) de conexao.</p>
+                        <div className="space-y-1">
+                          {selectedPersonReasons.slice(0, 4).map((reason, idx) => (
+                            <p key={`${reason.code}_${idx}`} className="text-[11px] text-[#2C3E50]">� {reason.message}</p>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-1 gap-2 pt-1">
+                          <button className="rounded-xl border border-[#D9E4EE] text-xs py-2 font-bold text-[#163A63]">Ver perfil</button>
+                          <button onClick={() => startConversation(selectedPerson)} className="rounded-xl bg-[#163A63] text-white text-xs py-2 font-bold">Conectar</button>
+                          <button onClick={() => startConversation(selectedPerson)} className="rounded-xl bg-[#12B8AE] text-[#163A63] text-xs py-2 font-bold">Conversar</button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </aside>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-[#D9E4EE] p-4 space-y-2">
+              <h3 className="text-sm font-extrabold text-[#163A63]">Visualizacao alternativa em lista</h3>
+              <p className="text-xs text-[#5A6F82]">Navegue pela rede sem usar o grafo interativo.</p>
+              <div className="space-y-2 max-h-[420px] overflow-y-auto pr-2">
+                {constellation.nodes.map((node) => (
+                  <button
+                    key={node.id}
+                    onClick={() => setSelectedNodeId(node.id)}
+                    className="w-full text-left rounded-xl border border-[#D9E4EE] p-2 hover:bg-[#F8FAFC]"
+                  >
+                    <p className="text-[11px] text-[#5A6F82] uppercase">{node.type}</p>
+                    <p className="text-xs font-bold text-[#163A63]">{node.label}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
       )}
     </div>
   );
 };
 
+function intentsToRoles(intents: {
+  queroAprender: boolean;
+  queroPraticar: boolean;
+  possoEnsinar: boolean;
+  apenasInteresse: boolean;
+}) {
+  const roles: ParticipantInterestItem['roles'] = [];
+  if (intents.queroAprender) roles.push('quero_aprender');
+  if (intents.queroPraticar) roles.push('praticar_com_outros');
+  if (intents.possoEnsinar) roles.push('posso_ensinar');
+  if (intents.apenasInteresse) roles.push('conversar');
+  if (roles.length === 0) roles.push('quero_praticar');
+  return roles;
+}
+
+function getPersonFromNode(nodeId: string): Participant | null {
+  if (!nodeId.startsWith('p_')) return null;
+  const participantId = nodeId.replace('p_', '');
+  return getExpandedProfile(participantId)
+    ? ({
+        ...({} as Participant),
+      } as any)
+    : null;
+}
