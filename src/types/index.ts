@@ -225,6 +225,35 @@ export interface ParticipantInterestItem {
   interestId: string;
   roles: InterestRole[];
   customName?: string;
+  intents?: {
+    queroAprender: boolean;
+    queroPraticar: boolean;
+    possoEnsinar: boolean;
+    apenasInteresse: boolean;
+  };
+  experienceLevel?: "iniciante" | "intermediario" | "avancado";
+  visibility?: VisibilityLevel;
+}
+
+export type VisibilityLevel = "private" | "connections" | "community";
+
+export interface ProfileNowInfo {
+  shortBio: string;
+  currentCity: string;
+  region: string;
+  inPersonAvailability: boolean;
+  onlineAvailability: boolean;
+  travelAvailability: boolean;
+  openToMeetPeople: boolean;
+}
+
+export interface ProfileFieldVisibility {
+  about: VisibilityLevel;
+  trajectory: VisibilityLevel;
+  interests: VisibilityLevel;
+  knowledge: VisibilityLevel;
+  learning: VisibilityLevel;
+  availability: VisibilityLevel;
 }
 
 export interface KnowledgeItem {
@@ -298,11 +327,14 @@ export interface FunctionalTrajectoryItem {
   startYear: number;
   endYear: number;
   isCurrent?: boolean;
+  projectHighlights?: string;
 }
 
 export interface ParticipantExpandedProfile {
   participantId: string;
   isCompleted: boolean;
+  profileNow?: ProfileNowInfo;
+  fieldVisibility?: ProfileFieldVisibility;
   interests: ParticipantInterestItem[];
   knowledgeItems: KnowledgeItem[];
   learningWishes: LearningWishItem[];
@@ -332,6 +364,60 @@ export interface AffinityMatch {
   distanceKm?: number;
   compositeScore: number;
   reasons: string[];
+}
+
+export interface InterestGroup {
+  id: string;
+  name: string;
+  interestIds: string[];
+  category: string;
+  cityScope: "local" | "regional" | "national";
+  modality: "presencial" | "online" | "ambos";
+  participantIds: string[];
+  description: string;
+}
+
+export type ConnectionReasonCode =
+  | "interesse_em_comum"
+  | "trajetoria_profissional"
+  | "sobreposicao_de_unidade"
+  | "mesma_localidade"
+  | "interesse_complementar"
+  | "grupo_em_comum";
+
+export interface ConnectionReason {
+  code: ConnectionReasonCode;
+  message: string;
+  weight: number;
+}
+
+export type NetworkNodeType =
+  | "pessoa"
+  | "interesse"
+  | "grupo"
+  | "unidade"
+  | "localizacao";
+
+export interface NetworkNode {
+  id: string;
+  type: NetworkNodeType;
+  label: string;
+  roleTag?: "aprender" | "praticar" | "ensinar";
+}
+
+export interface NetworkEdge {
+  id: string;
+  source: string;
+  target: string;
+  relation:
+    | "trabalhou_com"
+    | "trabalhou_em"
+    | "gosta_de"
+    | "quer_aprender"
+    | "pode_ensinar"
+    | "participa_de"
+    | "mora_em"
+    | "relacionado_a";
 }
 
 export interface PeerChatMessage {
