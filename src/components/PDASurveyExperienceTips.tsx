@@ -37,10 +37,12 @@ const GOAL_OPTIONS = [
 
 interface PDASurveyExperienceTipsProps {
   onOpenExperienceModal?: (exp: Experience) => void;
+  onOpenPDA?: () => void;
 }
 
 export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = ({
   onOpenExperienceModal,
+  onOpenPDA,
 }) => {
   const {
     currentParticipant,
@@ -165,24 +167,39 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#E6F7F6] text-[#0A7D76] rounded-full text-xs font-black uppercase tracking-wider border border-[#B4EBE6]">
             <Sparkles className="w-3.5 h-3.5 text-[#12B8AE]" />
-            <span>Dicas do PDA Baseadas no seu Gráfico da Pesquisa</span>
+            <span>GDA • Gestão de Desempenho do Aposentado</span>
           </div>
           <h3 className="text-xl sm:text-2xl font-black text-[#163A63]">
             Experiências Recomendadas a Partir do seu Retrato
           </h3>
           <p className="text-xs sm:text-sm text-[#5A6F82]">
-            Cruzamos os resultados do seu gráfico de longevidade com as oportunidades mais transformadoras para a sua fase de vida.
+            Com base no seu Retrato de Longevidade, o GDA identifica pontos de atenção, potencialidades e oportunidades para viver esta fase com mais qualidade.
           </p>
         </div>
 
-        {/* Priority badge summary */}
-        <div className="flex items-center gap-2 bg-[#F4F7FA] p-3 rounded-2xl border border-[#D9E4EE] shrink-0 self-start md:self-auto">
-          <Target className="w-5 h-5 text-[#12B8AE]" />
-          <div className="text-xs">
-            <span className="font-bold text-[#163A63] block">Foco Recomendado no PDA:</span>
-            <span className="text-[#0A7D76] font-semibold">
-              {priorityList.map((p) => p.name).join(' & ')}
+        {/* CTA para o PDA + Priority badge summary */}
+        <div className="flex flex-col items-start md:items-end gap-3 shrink-0 self-start md:self-auto">
+          <div className="flex flex-col items-start md:items-end gap-1">
+            <button
+              onClick={onOpenPDA}
+              className="px-4 py-2.5 bg-[#163A63] hover:bg-[#1E466F] text-white rounded-xl text-xs font-black uppercase tracking-wide transition-all flex items-center gap-2 shadow-xs"
+            >
+              <span>Criar / Atualizar meu PDA</span>
+              <ArrowRight className="w-4 h-4 text-[#12B8AE]" />
+            </button>
+            <span className="text-[10px] font-bold text-[#164E7A] uppercase tracking-wider">
+              PDA • Plano de Desenvolvimento do Aposentado
             </span>
+          </div>
+
+          <div className="flex items-center gap-2 bg-[#F4F7FA] p-3 rounded-2xl border border-[#D9E4EE]">
+            <Target className="w-5 h-5 text-[#12B8AE]" />
+            <div className="text-xs">
+              <span className="font-bold text-[#163A63] block">Foco Recomendado no PDA:</span>
+              <span className="text-[#0A7D76] font-semibold">
+                {priorityList.map((p) => p.name).join(' & ')}
+              </span>
+            </div>
           </div>
         </div>
       </div>

@@ -611,7 +611,7 @@ export const MeuViverMaisView: React.FC = () => {
       {isTabActive('pda') && (
         <div className="space-y-6 animate-in fade-in">
           {/* Header Banner Divertido do PDA */}
-          <div className="bg-gradient-to-r from-[#163A63] via-[#1E466F] to-[#164E7A] text-white p-7 sm:p-8 rounded-3xl shadow-sm space-y-3">
+          <div id="pda-planejamento" className="bg-gradient-to-r from-[#163A63] via-[#1E466F] to-[#164E7A] text-white p-7 sm:p-8 rounded-3xl shadow-sm space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#12B8AE]/20 border border-[#12B8AE]/40 rounded-full text-[#B4EBE6] text-xs font-black uppercase tracking-wider">
               <Sparkles className="w-4 h-4 text-[#12B8AE]" />
               <span>PDA • PLANO DE DESENVOLVIMENTO DO APOSENTADO (ADEUS PDI & PDL!)</span>
@@ -626,7 +626,14 @@ export const MeuViverMaisView: React.FC = () => {
           </div>
 
           {/* Dicas e Catálogo Unificado de Experiências Baseadas no Radar e Intenções */}
-          <PDASurveyExperienceTips />
+          <PDASurveyExperienceTips
+            onOpenPDA={() => {
+              setMeuViverMaisTab('pda');
+              document
+                .getElementById('pda-planejamento')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+          />
         </div>
       )}
 
