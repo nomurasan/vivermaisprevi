@@ -13,6 +13,7 @@ import {
   NETWORK_GROUPS,
 } from '../services/networkEngine';
 import { CATALOG_INTERESTS, getExpandedProfile } from '../mock/interestsCatalog';
+import { PROFILES, SYNTHETIC_PARTICIPANTS } from '../mock/participants';
 import { Participant, ParticipantInterestItem, VisibilityLevel } from '../types';
 import {
   Compass,
@@ -20,11 +21,9 @@ import {
   Layers,
   MessageSquare,
   Orbit,
-  Sparkles,
   CheckCircle2,
   Plus,
   Search,
-  ArrowRight,
   Shield,
 } from 'lucide-react';
 
@@ -93,6 +92,8 @@ export const DesaposenteRedeView: React.FC = () => {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [graphDepth, setGraphDepth] = useState<1 | 2 | 3>(1);
   const [showListAlternative, setShowListAlternative] = useState(false);
+  const [graphSearch, setGraphSearch] = useState('');
+  const [customInterestName, setCustomInterestName] = useState('');
 
   const [groupCategory, setGroupCategory] = useState('Todos');
   const [groupIntentFilter, setGroupIntentFilter] = useState<'todos' | 'aprender' | 'praticar' | 'ensinar' | 'conhecer'>('todos');
@@ -175,6 +176,23 @@ export const DesaposenteRedeView: React.FC = () => {
     [currentParticipant.id, graphDepth]
   );
 
+  const focusedConstellation = useMemo(() => {
+    if (!selectedNodeId) return constellation;
+
+    const neighborIds = new Set<string>([selectedNodeId]);
+    constellation.edges.forEach((edge) => {
+      if (edge.source === selectedNodeId) neighborIds.add(edge.target);
+      if (edge.target === selectedNodeId) neighborIds.add(edge.source);
+    });
+
+    const nodes = constellation.nodes.filter((node) => neighborIds.has(node.id));
+    const edges = constellation.edges.filter(
+      (edge) => neighborIds.has(edge.source) && neighborIds.has(edge.target)
+    );
+
+    return { nodes, edges };
+  }, [constellation, selectedNodeId]);
+
   const selectedNode = selectedNodeId
     ? constellation.nodes.find((node) => node.id === selectedNodeId)
     : null;
@@ -186,6 +204,70 @@ export const DesaposenteRedeView: React.FC = () => {
   const selectedPersonReasons = selectedPerson
     ? getConnectionReasons(currentParticipant, selectedPerson)
     : [];
+
+  const selectedInterestPeople = useMemo(() => {
+    if (!selectedNode || selectedNode.type !== 'interesse') return null;
+    const interestId = selectedNode.id.replace('i_', '');
+    const people = SYNTHETIC_PARTICIPANTS.filter((person) => {
+      const profile = getExpandedProfile(person.id);
+      return profile.interests.some((it) => it.interestId === interestId);
+    }).slice(0, 12);
+
+    const learners = people.filter((person) => {
+      const item = getExpandedProfile(person.id).interests.find((it) => it.interestId === interestId);
+      return !!item?.intents?.queroAprender || item?.roles.includes('quero_aprender');
+    });
+
+    const practitioners = people.filter((person) => {
+      const item = getExpandedProfile(person.id).interests.find((it) => it.interestId === interestId);
+      return !!item?.intents?.queroPraticar || item?.roles.includes('praticar_com_outros') || item?.roles.includes('quero_praticar');
+    });
+
+    const teachers = people.filter((person) => {
+      const item = getExpandedProfile(person.id).interests.find((it) => it.interestId === interestId);
+      return !!item?.intents?.possoEnsinar || item?.roles.includes('posso_ensinar') || item?.roles.includes('posso_compartilhar');
+    });
+
+    const relatedGroups = NETWORK_GROUPS.filter((group) => group.interestIds.includes(interestId));
+
+    return {
+      learners,
+      practitioners,
+      teachers,
+      relatedGroups,
+    };
+  }, [selectedNode]);
+
+  const selectedUnitColleagues = useMemo(() => {
+    if (!selectedNode || selectedNode.type !== 'unidade') return [];
+    const unitName = selectedNode.label.toLowerCase();
+    const myTrajectory = expandedProfile.trajectory.find(
+      (item) => item.unitName.toLowerCase() === unitName
+    );
+
+    if (!myTrajectory) return [];
+
+    return recommended
+      .map((rec) => {
+        const profile = getExpandedProfile(rec.participant.id);
+        const overlap = profile.trajectory.find(
+          (item) => item.unitName.toLowerCase() === unitName
+        );
+        if (!overlap) return null;
+
+        const overlapStart = Math.max(myTrajectory.startYear, overlap.startYear);
+        const overlapEnd = Math.min(myTrajectory.endYear, overlap.endYear);
+        const hasOverlap = overlapStart <= overlapEnd;
+
+        return {
+          participant: rec.participant,
+          hasOverlap,
+          overlapText: hasOverlap ? `${overlapStart}-${overlapEnd}` : 'Sem sobreposicao de periodo',
+        };
+      })
+      .filter(Boolean)
+      .slice(0, 8) as Array<{ participant: Participant; hasOverlap: boolean; overlapText: string }>;
+  }, [selectedNode, expandedProfile.trajectory, recommended]);
 
   const unreadCount = peerConversations.reduce((acc, conv) => acc + conv.unreadCount, 0);
 
@@ -311,6 +393,32 @@ export const DesaposenteRedeView: React.FC = () => {
     sendReconnectionRequest(participant);
     setActivePeerConversationId(`conv_${participant.id}`);
     setActiveTab('conversas_conexoes');
+  };
+
+  const addCustomInterest = () => {
+    const value = customInterestName.trim();
+    if (!value) return;
+    saveInterestItem({
+      interestId: `custom_${Date.now()}`,
+      customName: value,
+      roles: ['conversar'],
+      intents: {
+        queroAprender: false,
+        queroPraticar: false,
+        possoEnsinar: false,
+        apenasInteresse: true,
+      },
+      experienceLevel: 'iniciante',
+      visibility: 'community',
+    });
+    setCustomInterestName('');
+  };
+
+  const handleGraphSearch = () => {
+    const q = graphSearch.trim().toLowerCase();
+    if (!q) return;
+    const found = constellation.nodes.find((node) => node.label.toLowerCase().includes(q));
+    if (found) setSelectedNodeId(found.id);
   };
 
   return (
@@ -448,7 +556,7 @@ export const DesaposenteRedeView: React.FC = () => {
                     <article key={item.id} className="rounded-xl border border-[#D9E4EE] p-3 bg-[#FAFBFD]">
                       <p className="text-[11px] text-[#12B8AE] font-bold uppercase">{item.organization}</p>
                       <p className="text-xs font-bold text-[#163A63]">{item.unitName}</p>
-                      <p className="text-[11px] text-[#5A6F82]">{item.role} ï {item.city}/{item.state} ï {item.startYear}-{item.endYear}</p>
+                      <p className="text-[11px] text-[#5A6F82]">{item.role} - {item.city}/{item.state} - {item.startYear}-{item.endYear}</p>
                       {item.projectHighlights && <p className="text-[11px] text-[#2C3E50] mt-1">Projeto relevante: {item.projectHighlights}</p>}
                     </article>
                   ))}
@@ -527,6 +635,21 @@ export const DesaposenteRedeView: React.FC = () => {
                       </button>
                     );
                   })}
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                  <input
+                    value={customInterestName}
+                    onChange={(e) => setCustomInterestName(e.target.value)}
+                    placeholder="Outro interesse"
+                    className="flex-1 rounded-xl border border-[#D9E4EE] p-2 text-xs"
+                  />
+                  <button
+                    onClick={addCustomInterest}
+                    className="rounded-xl border border-[#D9E4EE] px-3 py-2 text-xs font-bold text-[#163A63]"
+                  >
+                    Adicionar outro interesse
+                  </button>
                 </div>
 
                 {selectedInterest && (
@@ -658,7 +781,7 @@ export const DesaposenteRedeView: React.FC = () => {
                     <div>
                       <h3 className="text-sm font-extrabold text-[#163A63]">{item.participant.name}</h3>
                       <p className="text-xs text-[#5A6F82]">
-                        {canShowAge ? `${item.participant.age} anos ï ` : ''}
+                        {canShowAge ? `${item.participant.age} anos - ` : ''}
                         {item.participant.city}
                       </p>
                     </div>
@@ -847,14 +970,28 @@ export const DesaposenteRedeView: React.FC = () => {
             >
               {showListAlternative ? 'Ver grafo' : 'Alternativa em lista'}
             </button>
+            <div className="w-full sm:w-auto sm:ml-auto flex gap-2">
+              <input
+                value={graphSearch}
+                onChange={(e) => setGraphSearch(e.target.value)}
+                placeholder="Buscar pessoa, interesse, grupo, unidade ou cidade"
+                className="rounded-xl border border-[#D9E4EE] px-3 py-1.5 text-xs w-full sm:w-80"
+              />
+              <button
+                onClick={handleGraphSearch}
+                className="rounded-xl bg-[#163A63] text-white px-3 py-1.5 text-xs font-bold"
+              >
+                Buscar
+              </button>
+            </div>
           </div>
 
           {!showListAlternative ? (
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
               <div className="xl:col-span-3">
                 <NetworkGraph
-                  nodes={constellation.nodes}
-                  edges={constellation.edges}
+                  nodes={focusedConstellation.nodes}
+                  edges={focusedConstellation.edges}
                   selectedNodeId={selectedNodeId}
                   onSelectNode={setSelectedNodeId}
                 />
@@ -874,10 +1011,34 @@ export const DesaposenteRedeView: React.FC = () => {
                     </div>
 
                     {selectedNode.type === 'interesse' && (
-                      <div className="text-xs text-[#2C3E50] space-y-1">
-                        <p>?? aprender</p>
-                        <p>?? praticar</p>
-                        <p>?? ensinar</p>
+                      <div className="text-xs text-[#2C3E50] space-y-2">
+                        <p>üå± aprender</p>
+                        <p>ü§ù praticar</p>
+                        <p>üí° ensinar</p>
+                        {selectedInterestPeople && (
+                          <>
+                            <p className="font-bold text-[#163A63] pt-1">Foco por interesse:</p>
+                            <p>{selectedInterestPeople.learners.length} querem aprender</p>
+                            <p>{selectedInterestPeople.practitioners.length} querem praticar</p>
+                            <p>{selectedInterestPeople.teachers.length} podem ensinar</p>
+                            <p>{selectedInterestPeople.relatedGroups.length} grupo(s) relacionado(s)</p>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {selectedNode.type === 'unidade' && (
+                      <div className="space-y-2">
+                        <p className="text-[11px] font-bold text-[#163A63]">Antigos colegas nesta unidade</p>
+                        {selectedUnitColleagues.length === 0 && (
+                          <p className="text-[11px] text-[#5A6F82]">Sem colegas mapeados para esta unidade no recorte atual.</p>
+                        )}
+                        {selectedUnitColleagues.map((entry) => (
+                          <div key={entry.participant.id} className="rounded-xl border border-[#D9E4EE] p-2">
+                            <p className="text-[11px] font-bold text-[#163A63]">{entry.participant.name}</p>
+                            <p className="text-[11px] text-[#5A6F82]">Periodo em comum: {entry.overlapText}</p>
+                          </div>
+                        ))}
                       </div>
                     )}
 
@@ -887,7 +1048,7 @@ export const DesaposenteRedeView: React.FC = () => {
                         <p className="text-[11px] text-[#5A6F82]">Voces possuem {selectedPersonReasons.length} ponto(s) de conexao.</p>
                         <div className="space-y-1">
                           {selectedPersonReasons.slice(0, 4).map((reason, idx) => (
-                            <p key={`${reason.code}_${idx}`} className="text-[11px] text-[#2C3E50]">ï {reason.message}</p>
+                            <p key={`${reason.code}_${idx}`} className="text-[11px] text-[#2C3E50]">- {reason.message}</p>
                           ))}
                         </div>
                         <div className="grid grid-cols-1 gap-2 pt-1">
@@ -943,9 +1104,8 @@ function intentsToRoles(intents: {
 function getPersonFromNode(nodeId: string): Participant | null {
   if (!nodeId.startsWith('p_')) return null;
   const participantId = nodeId.replace('p_', '');
-  return getExpandedProfile(participantId)
-    ? ({
-        ...({} as Participant),
-      } as any)
-    : null;
+  const fromProfiles = PROFILES[participantId];
+  if (fromProfiles) return fromProfiles;
+  const fromSynthetic = SYNTHETIC_PARTICIPANTS.find((person) => person.id === participantId);
+  return fromSynthetic || null;
 }
