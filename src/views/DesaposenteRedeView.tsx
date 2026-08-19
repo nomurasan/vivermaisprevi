@@ -4,6 +4,7 @@ import { Avatar } from '../components/Avatar';
 import { DesaposenteMessenger } from '../components/DesaposenteMessenger';
 import { ProfileCompletion } from '../components/desaposente/ProfileCompletion';
 import { NetworkGraph } from '../components/desaposente/NetworkGraph';
+import { GroupConversationPage } from '../components/desaposente/GroupConversationPage';
 import {
   buildConstellationData,
   getConnectionReasons,
@@ -14,7 +15,8 @@ import {
 } from '../services/networkEngine';
 import { CATALOG_INTERESTS, getExpandedProfile } from '../mock/interestsCatalog';
 import { PROFILES, SYNTHETIC_PARTICIPANTS } from '../mock/participants';
-import { Participant, ParticipantInterestItem, VisibilityLevel } from '../types';
+import { INITIAL_GROUP_EVENTS, INITIAL_GROUP_MEMBERSHIP_BY_USER, INITIAL_GROUP_MESSAGES, GROUP_COMMUNITY_CONFIGS } from '../mock/groupCommunity';
+import { GroupEvent, GroupMembershipStatus, GroupMessage, Participant, ParticipantInterestItem, VisibilityLevel } from '../types';
 import {
   Compass,
   Users,
@@ -37,8 +39,8 @@ type RedeTab =
 const TAB_ITEMS: { id: RedeTab; label: string; icon: React.ReactNode }[] = [
   { id: 'perfil_agora', label: 'Meu Perfil de Agora', icon: <Compass className="w-3.5 h-3.5" /> },
   { id: 'pessoas_recomendadas', label: 'Pessoas Recomendadas', icon: <Users className="w-3.5 h-3.5" /> },
-  { id: 'interesses_grupos', label: 'Interesses & Grupos', icon: <Layers className="w-3.5 h-3.5" /> },
   { id: 'conversas_conexoes', label: 'Conversas & Conexoes', icon: <MessageSquare className="w-3.5 h-3.5" /> },
+  { id: 'interesses_grupos', label: 'Interesses & Grupos', icon: <Layers className="w-3.5 h-3.5" /> },
   { id: 'minha_constelacao', label: 'Minha Constelacao', icon: <Orbit className="w-3.5 h-3.5" /> },
 ];
 
@@ -99,6 +101,19 @@ export const DesaposenteRedeView: React.FC = () => {
   const [groupIntentFilter, setGroupIntentFilter] = useState<'todos' | 'aprender' | 'praticar' | 'ensinar' | 'conhecer'>('todos');
   const [groupFormatFilter, setGroupFormatFilter] = useState<'todos' | 'presencial' | 'online' | 'ambos'>('todos');
   const [groupLocationFilter, setGroupLocationFilter] = useState<'cidade' | 'regiao' | 'brasil'>('cidade');
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [showGroupInfo, setShowGroupInfo] = useState(false);
+  const [groupMessages, setGroupMessages] = useState<GroupMessage[]>(INITIAL_GROUP_MESSAGES);
+  const [groupEvents, setGroupEvents] = useState<GroupEvent[]>(INITIAL_GROUP_EVENTS);
+  const [groupUnreadMap, setGroupUnreadMap] = useState<Record<string, number>>(
+    Object.values(GROUP_COMMUNITY_CONFIGS).reduce((acc, cfg) => {
+      acc[cfg.groupId] = cfg.unreadCount;
+      return acc;
+    }, {} as Record<string, number>)
+  );
+  const [groupMembershipById, setGroupMembershipById] = useState<Record<string, GroupMembershipStatus>>(
+    INITIAL_GROUP_MEMBERSHIP_BY_USER[currentParticipant.id] || {}
+  );
 
   const [newTrajectory, setNewTrajectory] = useState({
     organization: 'Banco do Brasil',
@@ -114,6 +129,12 @@ export const DesaposenteRedeView: React.FC = () => {
   const selectedInterest = selectedInterestId
     ? CATALOG_INTERESTS.find((i) => i.id === selectedInterestId)
     : null;
+
+  const selectedGroup = selectedGroupId
+    ? NETWORK_GROUPS.find((group) => group.id === selectedGroupId) || null
+    : null;
+
+  const groupUnreadTotal = (Object.values(groupUnreadMap) as number[]).reduce<number>((acc, count) => acc + count, 0);
 
   const recommended = useMemo(() => {
     const list = getRecommendedPeople(currentParticipant.id, 18);
@@ -271,6 +292,10 @@ export const DesaposenteRedeView: React.FC = () => {
 
   const unreadCount = peerConversations.reduce((acc, conv) => acc + conv.unreadCount, 0);
 
+  React.useEffect(() => {
+    setGroupMembershipById(INITIAL_GROUP_MEMBERSHIP_BY_USER[currentParticipant.id] || {});
+  }, [currentParticipant.id]);
+
   const updateFieldVisibility = (field: 'about' | 'trajectory' | 'interests' | 'knowledge' | 'learning' | 'availability', value: VisibilityLevel) => {
     updateExpandedProfile((prev) => ({
       ...prev,
@@ -421,6 +446,68 @@ export const DesaposenteRedeView: React.FC = () => {
     if (found) setSelectedNodeId(found.id);
   };
 
+  const openGroup = (groupId: string) => {
+    setSelectedGroupId(groupId);
+    setGroupUnreadMap((prev) => ({ ...prev, [groupId]: 0 }));
+  };
+
+  const joinSelectedGroup = () => {
+    if (!selectedGroup) return;
+    setGroupMembershipById((prev) => ({ ...prev, [selectedGroup.id]: 'member' }));
+  };
+
+  const requestJoinSelectedGroupApproval = () => {
+    if (!selectedGroup) return;
+    setGroupMembershipById((prev) => ({ ...prev, [selectedGroup.id]: 'pending' }));
+  };
+
+  const sendGroupMessage = (text: string) => {
+    if (!selectedGroup) return;
+    const newMessage: GroupMessage = {
+      id: `gmsg_${Date.now()}`,
+      groupId: selectedGroup.id,
+      userId: currentParticipant.id,
+      message: text,
+      createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    setGroupMessages((prev) => [...prev, newMessage]);
+  };
+
+  const createGroupEvent = () => {
+    if (!selectedGroup) return;
+    const event: GroupEvent = {
+      id: `gevt_${Date.now()}`,
+      groupId: selectedGroup.id,
+      title: 'Roda de Violao',
+      description: 'Encontro demonstrativo criado pela comunidade do grupo.',
+      date: 'Sabado, 15h',
+      location: 'Clube / Brasilia',
+      format: 'presencial',
+      createdBy: currentParticipant.id,
+      interestedUserIds: [currentParticipant.id],
+    };
+    setGroupEvents((prev) => [event, ...prev]);
+  };
+
+  const expressInterestInEvent = (eventId: string) => {
+    setGroupEvents((prev) =>
+      prev.map((event) => {
+        if (event.id !== eventId) return event;
+        if (event.interestedUserIds.includes(currentParticipant.id)) return event;
+        return {
+          ...event,
+          interestedUserIds: [...event.interestedUserIds, currentParticipant.id],
+        };
+      })
+    );
+  };
+
+  const goToPrivateConversation = (participant: Participant) => {
+    sendReconnectionRequest(participant);
+    setActivePeerConversationId(`conv_${participant.id}`);
+    setActiveTab('conversas_conexoes');
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8 space-y-7">
       <section className="bg-gradient-to-br from-[#163A63] via-[#1E466F] to-[#164E7A] rounded-3xl p-8 sm:p-10 text-white relative overflow-hidden">
@@ -447,12 +534,17 @@ export const DesaposenteRedeView: React.FC = () => {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${active
-                  ? 'bg-[#163A63] text-white shadow-xs'
-                  : 'text-[#5A6F82] hover:bg-[#F4F7FA] hover:text-[#163A63]'
+                ? 'bg-[#163A63] text-white shadow-xs'
+                : 'text-[#5A6F82] hover:bg-[#F4F7FA] hover:text-[#163A63]'
                 }`}
             >
               {item.icon}
               <span>{item.label}</span>
+              {item.id === 'interesses_grupos' && groupUnreadTotal > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-[#12B8AE] text-[#163A63] font-black">
+                  {groupUnreadTotal}
+                </span>
+              )}
               {item.id === 'conversas_conexoes' && unreadCount > 0 && (
                 <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-[#12B8AE] text-[#163A63] font-black">
                   {unreadCount}
@@ -625,8 +717,8 @@ export const DesaposenteRedeView: React.FC = () => {
                         key={interest.id}
                         onClick={() => handleInterestToggle(interest.id)}
                         className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${active
-                            ? 'bg-[#E6F7F6] text-[#163A63] border-[#12B8AE]'
-                            : 'bg-white text-[#5A6F82] border-[#D9E4EE] hover:border-[#12B8AE]'
+                          ? 'bg-[#E6F7F6] text-[#163A63] border-[#12B8AE]'
+                          : 'bg-white text-[#5A6F82] border-[#D9E4EE] hover:border-[#12B8AE]'
                           }`}
                       >
                         {interest.icon} {interest.name}
@@ -681,8 +773,8 @@ export const DesaposenteRedeView: React.FC = () => {
                               key={level.id}
                               onClick={() => handleInterestExperienceChange(selectedInterest.id, level.id)}
                               className={`px-3 py-1.5 text-xs rounded-full border ${active
-                                  ? 'bg-[#163A63] text-white border-[#163A63]'
-                                  : 'bg-white text-[#5A6F82] border-[#D9E4EE]'
+                                ? 'bg-[#163A63] text-white border-[#163A63]'
+                                : 'bg-white text-[#5A6F82] border-[#D9E4EE]'
                                 }`}
                             >
                               {level.label}
@@ -721,8 +813,8 @@ export const DesaposenteRedeView: React.FC = () => {
                             key={level}
                             onClick={() => updateFieldVisibility(field, level)}
                             className={`px-2 py-1 rounded-lg text-[10px] border ${active
-                                ? 'bg-[#163A63] text-white border-[#163A63]'
-                                : 'bg-white text-[#5A6F82] border-[#D9E4EE]'
+                              ? 'bg-[#163A63] text-white border-[#163A63]'
+                              : 'bg-white text-[#5A6F82] border-[#D9E4EE]'
                               }`}
                           >
                             {VISIBILITY_LABEL[level]}
@@ -814,103 +906,174 @@ export const DesaposenteRedeView: React.FC = () => {
 
       {activeTab === 'interesses_grupos' && (
         <section className="space-y-5 animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-[#D9E4EE] p-5 space-y-2">
-            <h2 className="text-lg font-extrabold text-[#163A63]">Encontre sua turma</h2>
-            <p className="text-xs text-[#5A6F82]">
-              Descubra pessoas que compartilham seus interesses. Participe de um grupo, troque experiencias ou ajude a criar uma nova roda.
-            </p>
-          </div>
+          {selectedGroup ? (
+            <>
+              <GroupConversationPage
+                group={selectedGroup}
+                currentUser={currentParticipant}
+                membershipStatus={groupMembershipById[selectedGroup.id] || 'not_member'}
+                messages={groupMessages.filter((message) => message.groupId === selectedGroup.id)}
+                events={groupEvents.filter((event) => event.groupId === selectedGroup.id)}
+                onBack={() => {
+                  setSelectedGroupId(null);
+                  setShowGroupInfo(false);
+                }}
+                onJoinGroup={joinSelectedGroup}
+                onRequestApprovalJoin={requestJoinSelectedGroupApproval}
+                onSendMessage={sendGroupMessage}
+                onCreateEvent={createGroupEvent}
+                onExpressInterestInEvent={expressInterestInEvent}
+                onOpenParticipant={(participant) => {
+                  setSearchPeople(participant.name);
+                  setActiveTab('pessoas_recomendadas');
+                }}
+                onOpenConversationWithParticipant={goToPrivateConversation}
+                onOpenGroupInfo={() => setShowGroupInfo(true)}
+                joinMode={GROUP_COMMUNITY_CONFIGS[selectedGroup.id]?.joinMode || 'open'}
+              />
 
-          <div className="bg-white rounded-2xl border border-[#D9E4EE] p-4 grid grid-cols-1 xl:grid-cols-4 gap-3">
-            <div>
-              <p className="text-[11px] font-bold text-[#5A6F82] mb-1">Categorias</p>
-              <select value={groupCategory} onChange={(e) => setGroupCategory(e.target.value)} className="w-full rounded-xl border border-[#D9E4EE] p-2 text-xs">
-                {GROUP_CATEGORY_FILTERS.map((cat) => <option key={cat}>{cat}</option>)}
-              </select>
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-[#5A6F82] mb-1">Quero</p>
-              <select value={groupIntentFilter} onChange={(e) => setGroupIntentFilter(e.target.value as any)} className="w-full rounded-xl border border-[#D9E4EE] p-2 text-xs">
-                <option value="todos">Todos</option>
-                <option value="aprender">Aprender</option>
-                <option value="praticar">Praticar</option>
-                <option value="ensinar">Ensinar / compartilhar</option>
-                <option value="conhecer">Conhecer pessoas</option>
-              </select>
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-[#5A6F82] mb-1">Formato</p>
-              <select value={groupFormatFilter} onChange={(e) => setGroupFormatFilter(e.target.value as any)} className="w-full rounded-xl border border-[#D9E4EE] p-2 text-xs">
-                <option value="todos">Tanto faz</option>
-                <option value="presencial">Presencial</option>
-                <option value="online">On-line</option>
-                <option value="ambos">Ambos</option>
-              </select>
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-[#5A6F82] mb-1">Localizacao</p>
-              <select value={groupLocationFilter} onChange={(e) => setGroupLocationFilter(e.target.value as any)} className="w-full rounded-xl border border-[#D9E4EE] p-2 text-xs">
-                <option value="cidade">Minha cidade</option>
-                <option value="regiao">Minha regiao</option>
-                <option value="brasil">Todo o Brasil</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredClusters.map((cluster) => (
-              <article key={cluster.interestId} className="bg-white rounded-2xl border border-[#D9E4EE] p-4 space-y-2">
-                <h3 className="text-sm font-extrabold text-[#163A63]">{cluster.interestName}</h3>
-                <p className="text-xs text-[#5A6F82]">{cluster.total} pessoas interessadas</p>
-                <div className="text-[11px] text-[#2C3E50] space-y-1">
-                  <p>{cluster.learnCount} querem aprender</p>
-                  <p>{cluster.practiceCount} querem praticar</p>
-                  <p>{cluster.teachCount} podem ensinar</p>
-                </div>
-                {cluster.relatedGroup ? (
-                  <div className="rounded-xl border border-[#B4EBE6] bg-[#F8FFFE] p-2">
-                    <p className="text-[11px] font-bold text-[#163A63]">Grupo relacionado: {cluster.relatedGroup.name}</p>
-                    <p className="text-[11px] text-[#5A6F82]">{cluster.relatedGroup.participantIds.length} participantes</p>
+              {showGroupInfo && (
+                <div className="fixed inset-0 z-50 bg-black/35 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl border border-[#D9E4EE] w-full max-w-2xl p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-base font-extrabold text-[#163A63]">Sobre o grupo</h3>
+                      <button onClick={() => setShowGroupInfo(false)} className="text-xs text-[#5A6F82] font-bold">Fechar</button>
+                    </div>
+                    <h4 className="text-lg font-extrabold text-[#163A63]">{selectedGroup.name}</h4>
+                    <p className="text-sm text-[#2C3E50]">{selectedGroup.description}</p>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="rounded-xl border border-[#D9E4EE] p-2"><strong>Interesse:</strong> {selectedGroup.interestIds.map((id) => CATALOG_INTERESTS.find((interest) => interest.id === id)?.name || id).join(', ')}</div>
+                      <div className="rounded-xl border border-[#D9E4EE] p-2"><strong>Categoria:</strong> {selectedGroup.category}</div>
+                      <div className="rounded-xl border border-[#D9E4EE] p-2"><strong>Formato:</strong> {selectedGroup.modality === 'ambos' ? 'Presencial + Online' : selectedGroup.modality}</div>
+                      <div className="rounded-xl border border-[#D9E4EE] p-2"><strong>Localizacao:</strong> {selectedGroup.cityScope === 'local' ? 'Brasilia' : selectedGroup.cityScope === 'regional' ? 'Minha regiao' : 'Nacional'}</div>
+                      <div className="rounded-xl border border-[#D9E4EE] p-2"><strong>Participantes:</strong> {selectedGroup.participantIds.length}</div>
+                      <div className="rounded-xl border border-[#D9E4EE] p-2"><strong>Criado em:</strong> {GROUP_COMMUNITY_CONFIGS[selectedGroup.id]?.createdAt || '2026-01-01'}</div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                      <button className="rounded-xl border border-[#D9E4EE] p-2 font-bold text-[#163A63]">Participantes</button>
+                      <button className="rounded-xl border border-[#D9E4EE] p-2 font-bold text-[#163A63]">Fotos/arquivos</button>
+                      <button className="rounded-xl border border-[#D9E4EE] p-2 font-bold text-[#163A63]">Eventos do grupo</button>
+                      <button className="rounded-xl border border-[#D9E4EE] p-2 font-bold text-[#163A63]">Privacidade</button>
+                      <button className="rounded-xl border border-[#D9E4EE] p-2 font-bold text-[#163A63]">Sair do grupo</button>
+                    </div>
                   </div>
-                ) : (
-                  <div className="rounded-xl border border-[#FDE68A] bg-[#FFFBEB] p-2 text-[11px] text-[#92400E]">
-                    Sem grupo relacionado no momento.
-                  </div>
-                )}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setSearchPeople(cluster.interestName);
-                      setActiveTab('pessoas_recomendadas');
-                    }}
-                    className="flex-1 rounded-xl border border-[#D9E4EE] text-xs px-3 py-2 text-[#163A63] font-bold"
-                  >
-                    Ver pessoas
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('conversas_conexoes')}
-                    className="flex-1 rounded-xl bg-[#12B8AE] text-xs px-3 py-2 text-[#163A63] font-bold"
-                  >
-                    Ver grupo
-                  </button>
                 </div>
-              </article>
-            ))}
-          </div>
-
-          {getGroupSuggestionsWithoutGroup(12).slice(0, 3).map((suggestion) => (
-            <div key={suggestion.interestId} className="bg-white rounded-2xl border border-[#FDE68A] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h3 className="text-sm font-extrabold text-[#163A63]">Tem turma querendo aparecer!</h3>
-                <p className="text-xs text-[#5A6F82]">Encontramos {suggestion.total} pessoas interessadas em {suggestion.interestName}.</p>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="bg-white rounded-2xl border border-[#D9E4EE] p-5 space-y-2">
+                <h2 className="text-lg font-extrabold text-[#163A63]">Encontre sua turma</h2>
+                <p className="text-xs text-[#5A6F82]">
+                  Descubra pessoas que compartilham seus interesses. Participe de um grupo, troque experiencias ou ajude a criar uma nova roda.
+                </p>
               </div>
-              <button className="px-4 py-2 rounded-xl bg-[#163A63] text-white text-xs font-bold">Sugerir criacao de grupo</button>
-            </div>
-          ))}
 
-          <div className="bg-white rounded-2xl border border-[#D9E4EE] p-4">
-            <p className="text-xs text-[#5A6F82]">Grupos disponiveis nesta versao demonstrativa: {NETWORK_GROUPS.length}</p>
-          </div>
+              <div className="bg-white rounded-2xl border border-[#D9E4EE] p-4 grid grid-cols-1 xl:grid-cols-4 gap-3">
+                <div>
+                  <p className="text-[11px] font-bold text-[#5A6F82] mb-1">Categorias</p>
+                  <select value={groupCategory} onChange={(e) => setGroupCategory(e.target.value)} className="w-full rounded-xl border border-[#D9E4EE] p-2 text-xs">
+                    {GROUP_CATEGORY_FILTERS.map((cat) => <option key={cat}>{cat}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold text-[#5A6F82] mb-1">Quero</p>
+                  <select value={groupIntentFilter} onChange={(e) => setGroupIntentFilter(e.target.value as any)} className="w-full rounded-xl border border-[#D9E4EE] p-2 text-xs">
+                    <option value="todos">Todos</option>
+                    <option value="aprender">Aprender</option>
+                    <option value="praticar">Praticar</option>
+                    <option value="ensinar">Ensinar / compartilhar</option>
+                    <option value="conhecer">Conhecer pessoas</option>
+                  </select>
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold text-[#5A6F82] mb-1">Formato</p>
+                  <select value={groupFormatFilter} onChange={(e) => setGroupFormatFilter(e.target.value as any)} className="w-full rounded-xl border border-[#D9E4EE] p-2 text-xs">
+                    <option value="todos">Tanto faz</option>
+                    <option value="presencial">Presencial</option>
+                    <option value="online">On-line</option>
+                    <option value="ambos">Ambos</option>
+                  </select>
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold text-[#5A6F82] mb-1">Localizacao</p>
+                  <select value={groupLocationFilter} onChange={(e) => setGroupLocationFilter(e.target.value as any)} className="w-full rounded-xl border border-[#D9E4EE] p-2 text-xs">
+                    <option value="cidade">Minha cidade</option>
+                    <option value="regiao">Minha regiao</option>
+                    <option value="brasil">Todo o Brasil</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {filteredClusters.map((cluster) => {
+                  const group = cluster.relatedGroup;
+                  const unread = group ? groupUnreadMap[group.id] || 0 : 0;
+                  const membership = group ? (groupMembershipById[group.id] || 'not_member') : 'not_member';
+
+                  return (
+                    <article key={cluster.interestId} className="bg-white rounded-2xl border border-[#D9E4EE] p-4 space-y-2">
+                      <h3 className="text-sm font-extrabold text-[#163A63]">{cluster.interestName.toUpperCase()}</h3>
+                      <p className="text-xs text-[#5A6F82]">{cluster.total} pessoas interessadas</p>
+                      <div className="text-[11px] text-[#2C3E50] space-y-1">
+                        <p>{cluster.learnCount} querem aprender</p>
+                        <p>{cluster.practiceCount} querem praticar</p>
+                        <p>{cluster.teachCount} podem compartilhar</p>
+                      </div>
+                      {group ? (
+                        <div className="rounded-xl border border-[#B4EBE6] bg-[#F8FFFE] p-2">
+                          <p className="text-[11px] font-bold text-[#163A63]">Grupo relacionado</p>
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-[11px] text-[#2C3E50]">🎸 {group.name}</p>
+                            {unread > 0 && (
+                              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[#12B8AE] text-[#163A63] font-black">
+                                {unread}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-[#5A6F82]">{group.participantIds.length} participantes</p>
+                        </div>
+                      ) : (
+                        <div className="rounded-xl border border-[#FDE68A] bg-[#FFFBEB] p-2 text-[11px] text-[#92400E]">
+                          Ainda nao existe um grupo. Ha pessoas querendo formar uma turma.
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        {group ? (
+                          <button
+                            onClick={() => openGroup(group.id)}
+                            className="flex-1 rounded-xl bg-[#12B8AE] text-xs px-3 py-2 text-[#163A63] font-bold"
+                          >
+                            {membership === 'member' ? 'Entrar no grupo' : membership === 'pending' ? 'Solicitacao enviada' : 'Conhecer grupo'}
+                          </button>
+                        ) : (
+                          <button
+                            className="flex-1 rounded-xl bg-[#163A63] text-xs px-3 py-2 text-white font-bold"
+                          >
+                            {cluster.total >= 15 ? 'Sugerir grupo' : 'Quero participar'}
+                          </button>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+
+              {getGroupSuggestionsWithoutGroup(12).slice(0, 3).map((suggestion) => (
+                <div key={suggestion.interestId} className="bg-white rounded-2xl border border-[#FDE68A] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-extrabold text-[#163A63]">Tem turma querendo aparecer!</h3>
+                    <p className="text-xs text-[#5A6F82]">Encontramos {suggestion.total} pessoas interessadas em {suggestion.interestName}.</p>
+                  </div>
+                  <button className="px-4 py-2 rounded-xl bg-[#163A63] text-white text-xs font-bold">Sugerir criacao de grupo</button>
+                </div>
+              ))}
+
+              <div className="bg-white rounded-2xl border border-[#D9E4EE] p-4">
+                <p className="text-xs text-[#5A6F82]">Grupos disponiveis nesta versao demonstrativa: {NETWORK_GROUPS.length}</p>
+              </div>
+            </>
+          )}
         </section>
       )}
 

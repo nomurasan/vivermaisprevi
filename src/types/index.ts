@@ -377,6 +377,49 @@ export interface InterestGroup {
   description: string;
 }
 
+export type GroupVisibility = "community" | "connections";
+
+export type GroupMemberRole = "member" | "moderator" | "admin";
+
+export type GroupMembershipStatus = "not_member" | "pending" | "member";
+
+export interface GroupMember {
+  groupId: string;
+  userId: string;
+  role: GroupMemberRole;
+  status: GroupMembershipStatus;
+  joinedAt: string;
+}
+
+export interface GroupMessage {
+  id: string;
+  groupId: string;
+  userId: string;
+  message: string;
+  createdAt: string;
+  editedAt?: string;
+}
+
+export interface GroupEvent {
+  id: string;
+  groupId: string;
+  title: string;
+  description: string;
+  date: string;
+  location: string;
+  format: "presencial" | "online" | "ambos";
+  createdBy: string;
+  interestedUserIds: string[];
+}
+
+export interface GroupCommunityConfig {
+  groupId: string;
+  visibility: GroupVisibility;
+  createdAt: string;
+  joinMode: "open" | "approval";
+  unreadCount: number;
+}
+
 export type ConnectionReasonCode =
   | "interesse_em_comum"
   | "trajetoria_profissional"
