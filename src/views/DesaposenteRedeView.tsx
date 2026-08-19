@@ -446,11 +446,10 @@ export const DesaposenteRedeView: React.FC = () => {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                active
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${active
                   ? 'bg-[#163A63] text-white shadow-xs'
                   : 'text-[#5A6F82] hover:bg-[#F4F7FA] hover:text-[#163A63]'
-              }`}
+                }`}
             >
               {item.icon}
               <span>{item.label}</span>
@@ -625,11 +624,10 @@ export const DesaposenteRedeView: React.FC = () => {
                       <button
                         key={interest.id}
                         onClick={() => handleInterestToggle(interest.id)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
-                          active
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${active
                             ? 'bg-[#E6F7F6] text-[#163A63] border-[#12B8AE]'
                             : 'bg-white text-[#5A6F82] border-[#D9E4EE] hover:border-[#12B8AE]'
-                        }`}
+                          }`}
                       >
                         {interest.icon} {interest.name}
                       </button>
@@ -682,11 +680,10 @@ export const DesaposenteRedeView: React.FC = () => {
                             <button
                               key={level.id}
                               onClick={() => handleInterestExperienceChange(selectedInterest.id, level.id)}
-                              className={`px-3 py-1.5 text-xs rounded-full border ${
-                                active
+                              className={`px-3 py-1.5 text-xs rounded-full border ${active
                                   ? 'bg-[#163A63] text-white border-[#163A63]'
                                   : 'bg-white text-[#5A6F82] border-[#D9E4EE]'
-                              }`}
+                                }`}
                             >
                               {level.label}
                             </button>
@@ -723,11 +720,10 @@ export const DesaposenteRedeView: React.FC = () => {
                           <button
                             key={level}
                             onClick={() => updateFieldVisibility(field, level)}
-                            className={`px-2 py-1 rounded-lg text-[10px] border ${
-                              active
+                            className={`px-2 py-1 rounded-lg text-[10px] border ${active
                                 ? 'bg-[#163A63] text-white border-[#163A63]'
                                 : 'bg-white text-[#5A6F82] border-[#D9E4EE]'
-                            }`}
+                              }`}
                           >
                             {VISIBILITY_LABEL[level]}
                           </button>
@@ -951,9 +947,8 @@ export const DesaposenteRedeView: React.FC = () => {
               <button
                 key={label}
                 onClick={() => setGraphDepth(depth as 1 | 2 | 3)}
-                className={`px-3 py-1.5 rounded-full text-xs border ${
-                  graphDepth === depth ? 'bg-[#163A63] text-white border-[#163A63]' : 'bg-white border-[#D9E4EE] text-[#5A6F82]'
-                }`}
+                className={`px-3 py-1.5 rounded-full text-xs border ${graphDepth === depth ? 'bg-[#163A63] text-white border-[#163A63]' : 'bg-white border-[#D9E4EE] text-[#5A6F82]'
+                  }`}
               >
                 {label}
               </button>
