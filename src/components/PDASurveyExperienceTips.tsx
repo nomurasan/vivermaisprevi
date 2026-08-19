@@ -165,10 +165,10 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
       {/* Title & Research Link Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EEF3F7] pb-5">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#E6F7F6] text-[#0A7D76] rounded-full text-xs font-black uppercase tracking-wider border border-[#B4EBE6]">
-            <Sparkles className="w-3.5 h-3.5 text-[#12B8AE]" />
-            <span>GDA • Gestão de Desempenho do Aposentado</span>
-          </div>
+          <h2 className="inline-flex items-center gap-2 text-lg sm:text-xl font-black text-[#0A7D76] uppercase tracking-wider">
+            <Sparkles className="w-4 h-4 text-[#12B8AE]" />
+            GDA • Gestão de Desempenho do Aposentado
+          </h2>
           <h3 className="text-xl sm:text-2xl font-black text-[#163A63]">
             Experiências Recomendadas a Partir do seu Retrato
           </h3>
