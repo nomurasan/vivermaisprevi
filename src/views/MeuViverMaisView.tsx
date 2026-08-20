@@ -599,6 +599,17 @@ export const MeuViverMaisView: React.FC = () => {
               <span>* Dados agregados e anonimizados. Sem cobranças, sem metas financeiras e sem ranqueamento pejorativo.</span>
             </div>
           </div>
+
+          {/* PARTE 5 DO GDA: EXPERIÊNCIAS RECOMENDADAS A PARTIR DO SEU RETRATO */}
+          {/* Camada de leitura/recomendação: Retrato de Longevidade → GDA → Experiências → PDA */}
+          <PDASurveyExperienceTips
+            onOpenPDA={() => {
+              setMeuViverMaisTab('pda');
+              document
+                .getElementById('pda-planejamento')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+          />
         </div>
       )}
 
@@ -622,16 +633,6 @@ export const MeuViverMaisView: React.FC = () => {
               Esqueça matrizes 9-box de competências, reuniões tensas de feedback e metas corporativas! No seu <strong>PDA</strong>, o desenvolvimento é todo voltado para o que você realmente quer viver: novos hobbies, viagens, música, gastronomia, atividade física ou simplesmente o nobre direito de descansar sem hora marcada.
             </p>
           </div>
-
-          {/* Dicas e Catálogo Unificado de Experiências Baseadas no Radar e Intenções */}
-          <PDASurveyExperienceTips
-            onOpenPDA={() => {
-              setMeuViverMaisTab('pda');
-              document
-                .getElementById('pda-planejamento')
-                ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }}
-          />
         </div>
       )}
 
