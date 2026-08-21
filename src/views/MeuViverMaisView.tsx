@@ -66,6 +66,15 @@ export const MeuViverMaisView: React.FC = () => {
     setMeuViverMaisTab,
     setPrevixContextKey,
     setIsPrevixOpen,
+    surveyResult,
+    ibplScore,
+    ibplStatus,
+    restartSurvey,
+    myPlan,
+    addToPlan,
+    removeFromPlan,
+    markPlanItemCompleted,
+    savedExperienceIds,
   } = useApp();
 
   const [recommendations, setRecommendations] = useState<Experience[]>([]);
@@ -75,7 +84,14 @@ export const MeuViverMaisView: React.FC = () => {
   const [selectedDimensionDetail, setSelectedDimensionDetail] = useState<DimensionId | null>(null);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
-  const firstName = currentParticipant.name.split(' ')[0];
+  const reportName = surveyResult?.displayName || currentParticipant.name;
+  const firstName = reportName.split(' ')[0];
+  const effectiveIbplScore = surveyResult?.ibplScore ?? currentParticipant.ibpl;
+  const effectiveIbplStatus = ibplStatus ?? currentParticipant.ibplStatus;
+  const effectiveDimensionScores = surveyResult
+    ? surveyResult.axisResults.filter((a) => a.score !== null).map((a) => { const d = DIMENSIONS.find((x) => x.id === a.axisId)!; return { dimensionId: a.axisId, name: d.name, score: a.score as number, status: a.status!, description: d.description, highlightText: d.reflectionTip }; })
+    : dimensionScores;
+  const effectiveScoresRecord = DIMENSIONS.reduce((acc, d) => { acc[d.id] = effectiveDimensionScores.find((s) => s.dimensionId === d.id)?.score ?? currentParticipant.scores[d.id]; return acc; }, {} as Record<DimensionId, number>);
 
   // Load recommendations, benchmark and life moment
   useEffect(() => {
@@ -90,19 +106,20 @@ export const MeuViverMaisView: React.FC = () => {
     load();
   }, [currentParticipant.id, activeIntentionTag, currentParticipant.lifeMomentId]);
 
-  const strengths = dimensionScores
+  const strengths = effectiveDimensionScores
     .filter((s) => s.score >= 80)
     .sort((a, b) => b.score - a.score);
 
-  const attentions = dimensionScores
+  const attentions = effectiveDimensionScores
     .filter((s) => s.score < 80)
     .sort((a, b) => a.score - b.score);
+  const priorityDimensions = [...effectiveDimensionScores].sort((a, b) => a.score - b.score).slice(0, 2);
+  const recommendedExperiences = recommendations.filter((e) => priorityDimensions.some((d) => d.dimensionId === e.dimensionId || d.dimensionId === e.secondaryDimensionId)).slice(0, 3);
+  const pdpExperiences = recommendedExperiences.length >= 3 ? recommendedExperiences : recommendations.slice(0, 3);
 
   // Evolution data
   const evolutionData = [
-    { period: 'Ago/2026', ibpl: currentParticipant.ibpl, emocional: currentParticipant.scores.saude_emocional, proposito: currentParticipant.scores.trabalho_proposito, vinculos: currentParticipant.scores.relacionamentos },
-    { period: 'Fev/2027', ibpl: Math.min(100, currentParticipant.ibpl + 3), emocional: Math.min(100, currentParticipant.scores.saude_emocional + 8), proposito: Math.min(100, currentParticipant.scores.trabalho_proposito + 7), vinculos: currentParticipant.scores.relacionamentos },
-    { period: 'Ago/2027', ibpl: Math.min(100, currentParticipant.ibpl + 6), emocional: Math.min(100, currentParticipant.scores.saude_emocional + 12), proposito: Math.min(100, currentParticipant.scores.trabalho_proposito + 11), vinculos: currentParticipant.scores.relacionamentos },
+    { period: 'Resultado atual', ibpl: effectiveIbplScore, emocional: effectiveScoresRecord.saude_emocional, proposito: effectiveScoresRecord.trabalho_proposito, vinculos: effectiveScoresRecord.relacionamentos },
   ];
 
   const handleGoalClick = (goalId: string) => {
@@ -238,6 +255,7 @@ export const MeuViverMaisView: React.FC = () => {
               <p className="text-xs sm:text-sm text-[#B4EBE6] leading-relaxed">
                 Quem trabalhou no Banco do Brasil se lembra bem da tensão dos ciclos de GDP, metas de captação e comitês de avaliação... No <strong>Vivendo Mais PREVI</strong>, o <strong>GDA</strong> virou a chave: aqui <strong>não há metas de produtos bancários nem cobrança de chefe</strong>! Sua única meta é o seu próprio bem-estar, autonomia e qualidade de vida nas 8 dimensões da longevidade.
               </p>
+              {surveyResult && <p className="text-[11px] text-[#B4EBE6]">Relatório de {surveyResult.displayName} • concluído em {new Date(surveyResult.completedAt).toLocaleDateString('pt-BR')}</p>}
             </div>
 
             {/* Quadro de "Metas" bem-humorado */}
@@ -249,8 +267,8 @@ export const MeuViverMaisView: React.FC = () => {
               </div>
               <div className="bg-white/10 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10">
                 <span className="text-[10px] uppercase font-bold text-[#B4EBE6] block">Índice IBPL Geral</span>
-                <span className="text-xl font-black text-[#12B8AE]">{currentParticipant.ibpl} / 100</span>
-                <span className="text-[9px] text-[#B4EBE6] block mt-0.5">{currentParticipant.ibplStatus}</span>
+                <span className="text-xl font-black text-[#12B8AE]">{effectiveIbplScore} / 100</span>
+                <span className="text-[9px] text-[#B4EBE6] block mt-0.5">{effectiveIbplStatus}</span>
               </div>
               <div className="bg-white/10 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10">
                 <span className="text-[10px] uppercase font-bold text-[#B4EBE6] block">Avaliação da Chefia</span>
@@ -297,11 +315,11 @@ export const MeuViverMaisView: React.FC = () => {
 
                   <div className="py-3 text-center bg-[#F4F7FA] rounded-2xl border border-[#D9E4EE]">
                     <span className="text-4xl sm:text-5xl font-black text-[#163A63]">
-                      {currentParticipant.ibpl}
+                      {effectiveIbplScore}
                     </span>
                     <span className="text-sm font-bold text-[#5A6F82]"> / 100</span>
                     <p className="text-xs font-bold text-[#0A7D76] mt-1">
-                      {currentParticipant.ibplStatus}
+                      {effectiveIbplStatus}
                     </p>
                   </div>
                 </div>
@@ -355,7 +373,7 @@ export const MeuViverMaisView: React.FC = () => {
 
                 {/* Responsive Radar */}
                 <RadarChartComponent
-                  scores={currentParticipant.scores}
+                  scores={effectiveScoresRecord}
                   onDimensionClick={handleOpenDimensionDetail}
                 />
 
@@ -633,6 +651,23 @@ export const MeuViverMaisView: React.FC = () => {
               Esqueça matrizes 9-box de competências, reuniões tensas de feedback e metas corporativas! No seu <strong>PDP</strong>, o desenvolvimento é todo voltado para o que você realmente quer viver: novos hobbies, viagens, música, gastronomia, atividade física ou simplesmente o nobre direito de descansar sem hora marcada.
             </p>
           </div>
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-3xl border border-[#D9E4EE] p-6 space-y-4">
+              <h3 className="text-lg font-black text-[#163A63]">Minhas prioridades</h3>
+              <p className="text-xs text-[#5A6F82]">São oportunidades de desenvolvimento, não avaliações negativas.</p>
+              {priorityDimensions.map((d) => { const config = DIMENSIONS.find((x) => x.id === d.dimensionId)!; return <div key={d.dimensionId} className="p-4 rounded-2xl bg-[#F4F7FA] space-y-1"><div className="flex justify-between"><b>{d.name}</b><span className="font-black text-[#0A988F]">{d.score}/100</span></div><span className="text-[11px] font-bold text-[#164E7A]">{getStatusLabel(d.status)}</span><p className="text-xs text-[#5A6F82]">{config.guidingQuestion}</p><p className="text-xs text-[#5A6F82]">{config.reflectionTip}</p></div>; })}
+            </div>
+            <div className="bg-white rounded-3xl border border-[#D9E4EE] p-6 space-y-4">
+              <h3 className="text-lg font-black text-[#163A63]">Experiências recomendadas</h3>
+              {pdpExperiences.length ? pdpExperiences.map((e) => <div key={e.id} className="p-4 rounded-2xl border border-[#D9E4EE] flex items-center justify-between gap-3"><div><b className="text-sm">{e.title}</b><p className="text-xs text-[#5A6F82]">{e.partnerName} • {e.category}</p></div><button onClick={() => addToPlan(e)} className="shrink-0 px-3 py-2 rounded-lg bg-[#E6F7F6] text-[#0A7D76] text-xs font-bold">{savedExperienceIds.includes(e.id) ? 'Salvo' : 'Salvar'}</button></div>) : <p className="text-sm text-[#5A6F82]">Ainda não encontramos uma recomendação para estas prioridades. Explore o catálogo para escolher uma experiência no seu ritmo.</p>}
+            </div>
+          </section>
+          <section className="bg-white rounded-3xl border border-[#D9E4EE] p-6 space-y-4">
+            <div className="flex justify-between items-center"><h3 className="text-lg font-black text-[#163A63]">Meu plano</h3><button onClick={() => navigateTo('explorar')} className="text-xs font-bold text-[#0A988F]">Explorar novas experiências</button></div>
+            {myPlan.length ? <div className="grid md:grid-cols-3 gap-3">{myPlan.map((item) => <div key={item.id} className="p-4 rounded-2xl bg-[#F4F7FA]"><b className="text-sm">{item.experience.title}</b><p className="text-[11px] text-[#5A6F82] mt-1">Incluído em {new Date(item.addedAt).toLocaleDateString('pt-BR')}</p><span className="text-[11px] font-bold text-[#164E7A]">{item.status.replace('_', ' ')}</span><div className="flex gap-2 mt-3"><button onClick={() => markPlanItemCompleted(item.id)} className="text-[11px] text-[#0A7D76] font-bold">Marcar realizado</button><button onClick={() => removeFromPlan(item.id)} className="text-[11px] text-red-700 font-bold">Remover</button></div></div>)}</div> : <p className="text-sm text-[#5A6F82]">Seu plano começa com uma pequena escolha. Salve uma experiência recomendada acima.</p>}
+          </section>
+          <div className="p-4 rounded-2xl bg-[#FFF8E8] border border-[#F0D58A] text-xs text-[#6B5615]">Resultado demonstrativo para reflexão pessoal. Não representa fórmula oficial da PREVI e não constitui diagnóstico clínico ou recomendação financeira.</div>
+          {surveyResult && <button onClick={restartSurvey} className="text-xs font-bold text-[#164E7A] underline">Refazer questionário</button>}
         </div>
       )}
 

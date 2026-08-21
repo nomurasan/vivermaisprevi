@@ -23,11 +23,14 @@ import { ProgramView } from './views/ProgramView';
 import { HowItWorksView } from './views/HowItWorksView';
 import { PrivacyView } from './views/PrivacyView';
 import { DesaposenteRedeView } from './views/DesaposenteRedeView';
+import { QuestionnaireIntroView } from './views/QuestionnaireIntroView';
+import { QuestionnaireView } from './views/QuestionnaireView';
 
 import { MessageSquareQuote, Sparkles } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
   const { currentView, fontSizeLarge, setIsFeedbackModalOpen } = useApp();
+  const isQuestionnaire = currentView === 'questionario_intro' || currentView === 'questionario';
 
   React.useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -55,6 +58,10 @@ const MainLayout: React.FC = () => {
         return <HowItWorksView />;
       case 'privacidade':
         return <PrivacyView />;
+      case 'questionario_intro':
+        return <QuestionnaireIntroView />;
+      case 'questionario':
+        return <QuestionnaireView />;
       default:
         return <HomeView />;
     }
@@ -67,13 +74,13 @@ const MainLayout: React.FC = () => {
       }`}
     >
       {/* Top Fixed Header */}
-      <Header />
+      {!isQuestionnaire && <Header />}
 
       {/* Main Content Area */}
       <main className="flex-1 w-full">{renderCurrentView()}</main>
 
       {/* Persistent Prototype Feedback Floating Pill (Bottom Left) */}
-      <div className="fixed bottom-5 left-5 z-40">
+      {!isQuestionnaire && <div className="fixed bottom-5 left-5 z-40">
         <button
           onClick={() => setIsFeedbackModalOpen(true)}
           className="px-4 py-2.5 bg-[#163A63] hover:bg-[#1E466F] text-[#12B8AE] hover:text-white rounded-full shadow-lg border border-[#12B8AE]/40 text-xs font-black tracking-wide flex items-center gap-2 transition-all hover:scale-105"
@@ -81,10 +88,10 @@ const MainLayout: React.FC = () => {
           <MessageSquareQuote className="w-4 h-4 text-[#12B8AE]" />
           <span>CONTE O QUE ACHOU</span>
         </button>
-      </div>
+      </div>}
 
       {/* Floating PREVIX Assistant (Bottom Right) */}
-      <PrevixAssistant />
+      {!isQuestionnaire && <PrevixAssistant />}
 
       {/* Global Modals */}
       <ExperienceDetailModal />
@@ -93,7 +100,7 @@ const MainLayout: React.FC = () => {
       <ToastNotification />
 
       {/* Footer */}
-      <Footer />
+      {!isQuestionnaire && <Footer />}
     </div>
   );
 };

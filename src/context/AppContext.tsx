@@ -18,6 +18,8 @@ import {
   ParticipantPrivacySettings,
   PeerConversation,
   PeerChatMessage,
+  SurveyDraft,
+  SurveyResult,
 } from '../types';
 import {
   getParticipant,
@@ -28,6 +30,9 @@ import { PROFILES } from '../mock/participants';
 import { EXPERIENCES } from '../mock/experiences';
 import { getExpandedProfile } from '../mock/interestsCatalog';
 import { INITIAL_CONVERSATIONS, SMART_RESPONSES_BY_INTEREST } from '../mock/peerConversations';
+import { calculateSurveyResult, createInitialDraft } from '../services/surveyScoring';
+import { loadSurveyDraft, saveSurveyDraft, loadSurveyResult as readSurveyResult, saveSurveyResult, clearSurveyDraft, clearSurveyResult } from '../services/surveyStorage';
+import { DIMENSIONS, getStatusLabel } from '../mock/dimensions';
 
 export type AppView =
   | 'home'
@@ -39,7 +44,9 @@ export type AppView =
   | 'explorar'
   | 'meu_plano'
   | 'inteligencia'
-  | 'privacidade';
+  | 'privacidade'
+  | 'questionario_intro'
+  | 'questionario';
 
 export type MeuViverMaisTab =
   | 'gda'
@@ -64,6 +71,10 @@ interface AppContextType {
   currentParticipant: Participant;
   expandedProfile: ParticipantExpandedProfile;
   dimensionScores: DimensionScore[];
+  surveyDraft: SurveyDraft | null;
+  surveyResult: SurveyResult | null;
+  ibplScore: number | null;
+  ibplStatus: string | null;
   myPlan: PlanItem[];
   savedExperienceIds: string[];
   interestedExperienceIds: string[];
@@ -120,6 +131,11 @@ interface AppContextType {
   submitExperienceEvaluation: (evaluation: ExperienceEvaluation) => void;
   submitPrototypeFeedback: (feedback: PrototypeFeedback) => void;
   recordEvent: (type: InteractionEvent['type'], payload: Record<string, any>) => void;
+  saveSurveyAnswer: (questionId: string, axisId: any, optionLabel: string, score: number | null) => void;
+  startSurvey: (displayName: string) => void;
+  completeSurvey: () => SurveyResult | null;
+  restartSurvey: () => void;
+  loadSurveyResult: (profileId?: string) => SurveyResult | null;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -175,7 +191,7 @@ const INITIAL_PROTOTYPE_FEEDBACKS: PrototypeFeedback[] = [
 ];
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [currentView, setCurrentView] = useState<AppView>('meu_viver_mais');
+  const [currentView, setCurrentView] = useState<AppView>('questionario_intro');
   const [meuViverMaisTab, setMeuViverMaisTab] = useState<MeuViverMaisTab>('retrato');
   const [activeProfileId, setActiveProfileId] = useState<string>('carlos');
   const [currentParticipant, setCurrentParticipant] = useState<Participant>(PROFILES.carlos);
@@ -183,6 +199,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     getExpandedProfile('carlos')
   );
   const [dimensionScores, setDimensionScores] = useState<DimensionScore[]>([]);
+  const [surveyDraft, setSurveyDraft] = useState<SurveyDraft | null>(null);
+  const [surveyResult, setSurveyResult] = useState<SurveyResult | null>(null);
   const [myPlan, setMyPlan] = useState<PlanItem[]>(INITIAL_PLAN);
   const [savedExperienceIds, setSavedExperienceIds] = useState<string[]>([
     'maturi_reconexao_prof',
@@ -234,11 +252,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const scores = await getParticipantScores(activeProfileId);
       const expProfile = getExpandedProfile(activeProfileId);
       setCurrentParticipant(p);
-      setDimensionScores(scores);
+      const result = readSurveyResult(activeProfileId);
+      const draft = loadSurveyDraft(activeProfileId);
+      setSurveyResult(result);
+      setSurveyDraft(draft);
+      setDimensionScores(result ? result.axisResults.filter((a) => a.score !== null).map((a) => {
+        const dim = DIMENSIONS.find((d) => d.id === a.axisId)!;
+        return { dimensionId: a.axisId, name: dim.name, score: a.score as number, status: a.status!, description: dim.description, highlightText: dim.reflectionTip };
+      }) : scores);
       setExpandedProfile(expProfile);
+      setCurrentView(result ? 'meu_viver_mais' : 'questionario_intro');
     }
     loadData();
   }, [activeProfileId]);
+
+  const saveSurveyAnswer = (questionId: string, axisId: any, optionLabel: string, score: number | null) => {
+    setSurveyDraft((previous) => {
+      const draft = previous || createInitialDraft(activeProfileId, currentParticipant.name);
+      const updated = { ...draft, updatedAt: new Date().toISOString(), answers: { ...draft.answers, [questionId]: { questionId, axisId, optionLabel, score, answeredAt: new Date().toISOString() } } };
+      saveSurveyDraft(updated);
+      return updated;
+    });
+  };
+
+  const startSurvey = (displayName: string) => {
+    const existing = loadSurveyDraft(activeProfileId);
+    const draft = existing ? { ...existing, displayName } : createInitialDraft(activeProfileId, displayName);
+    setSurveyDraft(draft); saveSurveyDraft(draft); setCurrentView('questionario');
+  };
+
+  const completeSurvey = () => {
+    if (!surveyDraft) return null;
+    const result = calculateSurveyResult(surveyDraft, Object.values(surveyDraft.answers));
+    saveSurveyResult(result); clearSurveyDraft(activeProfileId); setSurveyResult(result); setSurveyDraft(null);
+    const scores = result.axisResults.filter((a) => a.score !== null).map((a) => { const dim = DIMENSIONS.find((d) => d.id === a.axisId)!; return { dimensionId: a.axisId, name: dim.name, score: a.score as number, status: a.status!, description: dim.description, highlightText: dim.reflectionTip }; });
+    setDimensionScores(scores); setMeuViverMaisTab('gda'); setCurrentView('meu_viver_mais');
+    return result;
+  };
+
+  const restartSurvey = () => { clearSurveyDraft(activeProfileId); clearSurveyResult(activeProfileId); setSurveyDraft(null); setSurveyResult(null); setDimensionScores([]); setCurrentView('questionario_intro'); };
 
   const recordEvent = (type: InteractionEvent['type'], payload: Record<string, any>) => {
     const newEvent: InteractionEvent = {
@@ -639,6 +691,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         currentParticipant,
         expandedProfile,
         dimensionScores,
+        surveyDraft,
+        surveyResult,
+        ibplScore: surveyResult?.ibplScore ?? null,
+        ibplStatus: surveyResult?.ibplStatus ? getStatusLabel(surveyResult.ibplStatus) : null,
         myPlan,
         savedExperienceIds,
         interestedExperienceIds,
@@ -694,6 +750,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         submitExperienceEvaluation,
         submitPrototypeFeedback,
         recordEvent,
+        saveSurveyAnswer,
+        startSurvey,
+        completeSurvey,
+        restartSurvey,
+        loadSurveyResult: (profileId = activeProfileId) => readSurveyResult(profileId),
       }}
     >
       <div className={fontSizeLarge ? 'text-lg leading-relaxed' : 'text-base'}>

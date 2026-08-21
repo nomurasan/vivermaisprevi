@@ -1,0 +1,18 @@
+import React, { useMemo, useState } from 'react';
+import { useApp } from '../context/AppContext';
+import { SURVEY_AXES } from '../mock/surveyQuestions';
+import { buildAnswer, canFinalizeAxis, canFinalizeSurvey } from '../services/surveyScoring';
+import { QuestionCard } from '../components/questionnaire/QuestionCard';
+import { QuestionnaireProgress } from '../components/questionnaire/QuestionnaireProgress';
+
+export const QuestionnaireView: React.FC = () => {
+  const { surveyDraft, saveSurveyAnswer, completeSurvey, navigateTo } = useApp();
+  const [axisIndex, setAxisIndex] = useState(0); const [review, setReview] = useState(false);
+  const axis = SURVEY_AXES[axisIndex]; const answers = useMemo(() => Object.values(surveyDraft?.answers || {}), [surveyDraft]);
+  const answered = answers.length; const validAxis = canFinalizeAxis(axis.id, answers);
+  if (!surveyDraft) return null;
+  const choose = (q: typeof axis.questions[number], label: string, score: number | null) => saveSurveyAnswer(q.id, q.axisId, label, score);
+  const next = () => axisIndex < SURVEY_AXES.length - 1 ? setAxisIndex(axisIndex + 1) : setReview(true);
+  return <main className="min-h-[70vh] px-4 py-8"><div className="max-w-3xl mx-auto space-y-5"><div className="flex justify-between items-center"><div><p className="text-xs font-black uppercase tracking-widest text-[#0A988F]">Olá, {surveyDraft.displayName}</p><h1 className="text-2xl font-black text-[#163A63]">Seu questionário</h1></div><button onClick={() => navigateTo('questionario_intro')} className="text-xs font-bold text-[#164E7A]">Salvar e sair</button></div><QuestionnaireProgress axis={review ? 8 : axisIndex + 1} totalAxes={8} answered={answered} total={40} />
+    {!review ? <><div className="bg-[#EBF3FA] rounded-2xl p-5"><h2 className="font-black text-xl text-[#163A63]">{axis.name}</h2><p className="text-sm text-[#5A6F82] mt-1">{axis.description}</p></div><div className="space-y-3">{axis.questions.map(q => <QuestionCard key={q.id} question={q} selected={surveyDraft.answers[q.id]?.optionLabel} onSelect={(l,s) => choose(q,l,s)} />)}</div><div className="flex justify-between"><button disabled={axisIndex === 0} onClick={() => setAxisIndex(axisIndex - 1)} className="px-4 py-3 rounded-xl border border-[#D9E4EE] font-bold disabled:opacity-40">Voltar</button><button onClick={next} disabled={!validAxis} className="px-5 py-3 rounded-xl bg-[#163A63] text-white font-bold disabled:opacity-40">{axisIndex === 7 ? 'Revisar respostas' : 'Continuar'}</button></div>{!validAxis && <p className="text-xs text-amber-700">Escolha pelo menos três respostas pontuáveis neste eixo para continuar.</p>}</> : <div className="bg-white rounded-3xl border border-[#D9E4EE] p-6 space-y-5"><h2 className="text-xl font-black text-[#163A63]">Revise antes de finalizar</h2>{SURVEY_AXES.map(a => <div key={a.id} className="border-b border-[#EEF3F7] pb-3"><div className="flex justify-between"><b>{a.name}</b><span className="text-xs">{answers.filter(x => x.axisId === a.id && x.score !== null).length}/5 pontuáveis</span></div><p className="text-xs text-[#5A6F82]">{a.questions.map(q => surveyDraft.answers[q.id]?.optionLabel || 'Não respondida').join(' • ')}</p></div>)}<div className="flex justify-between"><button onClick={() => { setReview(false); setAxisIndex(7); }} className="px-4 py-3 rounded-xl border border-[#D9E4EE] font-bold">Voltar</button><button disabled={!canFinalizeSurvey(answers)} onClick={() => completeSurvey()} className="px-5 py-3 rounded-xl bg-[#12B8AE] text-[#163A63] font-black disabled:opacity-40">Finalizar questionário</button></div></div>}</div></main>;
+};
