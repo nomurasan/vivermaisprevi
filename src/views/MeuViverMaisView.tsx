@@ -120,7 +120,7 @@ export const MeuViverMaisView: React.FC = () => {
 
   const tabs: { id: MeuViverMaisTab; label: string; badge?: string }[] = [
     { id: 'gda', label: 'GDA (Gestão de Desempenho do Aposentado)' },
-    { id: 'pda', label: 'PDA (Plano de Desenvolvimento do Aposentado)' },
+    { id: 'pda', label: 'PDP (Plano de Desenvolvimento do Participante)' },
     { id: 'hall_mestres', label: 'Hall de Mestres da Longevidade', badge: 'DESTAQUES' },
   ];
 
@@ -448,7 +448,7 @@ export const MeuViverMaisView: React.FC = () => {
                           onClick={() => setMeuViverMaisTab('pda')}
                           className="text-[10px] font-bold text-[#12B8AE] hover:underline"
                         >
-                          Ir ao PDA
+                          Ir ao PDP
                         </button>
                       </div>
                     </div>
@@ -614,7 +614,7 @@ export const MeuViverMaisView: React.FC = () => {
       )}
 
       {/* ============================================================ */}
-      {/* TAB 2: PDA (PLANO DE DESENVOLVIMENTO DO APOSENTADO) */}
+      {/* TAB 2: PDP (PLANO DE DESENVOLVIMENTO DO PARTICIPANTE) */}
       {/* Satiriza PDI / PDL com foco no protagonismo e intenções de vida */}
       {/* ============================================================ */}
       {isTabActive('pda') && (
@@ -623,14 +623,14 @@ export const MeuViverMaisView: React.FC = () => {
           <div id="pda-planejamento" className="bg-gradient-to-r from-[#163A63] via-[#1E466F] to-[#164E7A] text-white p-7 sm:p-8 rounded-3xl shadow-sm space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#12B8AE]/20 border border-[#12B8AE]/40 rounded-full text-[#B4EBE6] text-xs font-black uppercase tracking-wider">
               <Sparkles className="w-4 h-4 text-[#12B8AE]" />
-              <span>PDA • PLANO DE DESENVOLVIMENTO DO APOSENTADO (ADEUS PDI & PDL!)</span>
+              <span>PDP • PLANO DE DESENVOLVIMENTO DO PARTICIPANTE (ADEUS PDI & PDL!)</span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-black text-white">
-              Seu PDA: Plano de Desenvolvimento do Aposentado
+              Seu PDP: Plano de Desenvolvimento do Participante
             </h2>
             <p className="text-xs sm:text-sm text-[#B4EBE6] max-w-3xl leading-relaxed">
-              Esqueça matrizes 9-box de competências, reuniões tensas de feedback e metas corporativas! No seu <strong>PDA</strong>, o desenvolvimento é todo voltado para o que você realmente quer viver: novos hobbies, viagens, música, gastronomia, atividade física ou simplesmente o nobre direito de descansar sem hora marcada.
+              Esqueça matrizes 9-box de competências, reuniões tensas de feedback e metas corporativas! No seu <strong>PDP</strong>, o desenvolvimento é todo voltado para o que você realmente quer viver: novos hobbies, viagens, música, gastronomia, atividade física ou simplesmente o nobre direito de descansar sem hora marcada.
             </p>
           </div>
         </div>
