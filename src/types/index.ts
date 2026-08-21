@@ -8,6 +8,91 @@ export type DimensionId =
   | "recursos_financeiros"
   | "moradia";
 
+// ==========================================
+// QUESTIONÁRIO DEMONSTRATIVO DE LONGEVIDADE
+// ==========================================
+
+export type SurveyScaleType =
+  | 'frequencia'
+  | 'concordancia'
+  | 'satisfacao'
+  | 'avaliacao'
+  | 'preparo'
+  | 'quantidade_fisica'
+  | 'reserva_financeira'
+  | 'reflexao_futuro'
+  | 'compreensao_beneficio';
+
+export interface SurveyOption {
+  label: string;
+  /** Pontuação normalizada entre 0 e 100. Use null para "Prefiro não responder". */
+  score: number | null;
+}
+
+export interface SurveyQuestion {
+  id: string;
+  /** Código de origem na planilha piloto (Qxxx) ou "demonstrativa" quando criada para o protótipo. */
+  sourceCode: string;
+  axisId: DimensionId;
+  text: string;
+  scaleType: SurveyScaleType;
+  options: SurveyOption[];
+  required: boolean;
+  isDemonstrative: boolean;
+  sourceNote?: string;
+}
+
+export interface SurveyAnswer {
+  questionId: string;
+  axisId: DimensionId;
+  /** Pontuação normalizada entre 0 e 100, ou null quando o respondente optou por "Prefiro não responder". */
+  score: number | null;
+  /** Rótulo da opção escolhida, para fins de revisão e auditoria. */
+  optionLabel: string;
+  answeredAt: string;
+}
+
+export interface SurveyDraft {
+  surveyVersion: string;
+  profileId: string;
+  displayName: string;
+  startedAt: string;
+  updatedAt: string;
+  answers: Record<string, SurveyAnswer>;
+}
+
+export interface AxisSurveyResult {
+  axisId: DimensionId;
+  /** Pontuação média (0-100) das respostas pontuáveis. null quando há menos de 3 respostas pontuáveis. */
+  score: number | null;
+  /** Quantidade de respostas pontuáveis utilizadas no cálculo. */
+  scoredCount: number;
+  /** Quantidade de respostas "Prefiro não responder" no eixo. */
+  skippedCount: number;
+  /** Total de perguntas respondidas no eixo (pontuáveis + "Prefiro não responder"). */
+  answeredCount: number;
+  /** Total de perguntas do eixo. */
+  totalQuestions: number;
+  /** Status calculado a partir da pontuação. */
+  status: StatusScore | null;
+  /** Indica se o eixo é válido (>= 3 respostas pontuáveis). */
+  isValid: boolean;
+}
+
+export interface SurveyResult {
+  surveyVersion: string;
+  profileId: string;
+  displayName: string;
+  startedAt: string;
+  completedAt: string;
+  answers: SurveyAnswer[];
+  axisResults: AxisSurveyResult[];
+  /** Pontuação geral (média dos eixos válidos). null quando não há eixos válidos suficientes. */
+  ibplScore: number | null;
+  /** Status geral calculado a partir de ibplScore. */
+  ibplStatus: StatusScore | null;
+}
+
 export type StatusScore = "FORTALECIDA" | "ACOMPANHAR" | "MERECE_ATENCAO";
 
 export interface DimensionConfig {
