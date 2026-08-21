@@ -22,6 +22,7 @@ import {
   X,
   ArrowLeft,
 } from 'lucide-react';
+import { formatPercentage } from '../utils/formatters';
 import {
   BarChart,
   Bar,
@@ -1376,11 +1377,7 @@ export const IBPLRegionalAxisMap: React.FC = () => {
 
                   <div className="flex items-baseline justify-between pt-1">
                     <div>
-                      <span className="text-2xl font-black">{score}</span>
-                      <span className={`text-xs ${isSelected ? 'text-[#B4EBE6]' : 'text-[#5A6F82]'}`}>
-                        {' '}
-                        / 100
-                      </span>
+                      <span className="text-2xl font-black">{formatPercentage(score)}</span>
                     </div>
 
                     <span
@@ -1445,8 +1442,7 @@ export const IBPLRegionalAxisMap: React.FC = () => {
               <span className="text-[10px] text-[#5A6F82] uppercase font-bold block">
                 Pontuação Regional
               </span>
-              <span className="text-2xl font-black text-[#163A63]">{currentScore}</span>
-              <span className="text-xs text-[#5A6F82]"> / 100</span>
+              <span className="text-2xl font-black text-[#163A63]">{formatPercentage(currentScore)}</span>
             </div>
           </div>
 
@@ -1575,10 +1571,9 @@ export const IBPLRegionalAxisMap: React.FC = () => {
 
                 <div className="flex items-baseline justify-between pt-1">
                   <div>
-                    <span className="text-2xl font-black">{st.ibpl}</span>
+                    <span className="text-2xl font-black">{formatPercentage(st.ibpl)}</span>
                     <span className={`text-xs ${isStateSelected ? 'text-[#B4EBE6]' : 'text-[#5A6F82]'}`}>
                       {' '}
-                      / 100 IBPL
                     </span>
                   </div>
                   <span className={`text-xs font-bold ${isStateSelected ? 'text-[#D9E4EE]' : 'text-[#5A6F82]'}`}>
@@ -1717,8 +1712,7 @@ export const IBPLRegionalAxisMap: React.FC = () => {
 
                         <div className="flex items-baseline justify-between py-1 bg-[#FAFBFD] px-3 rounded-xl border border-[#EEF3F7]">
                           <div>
-                            <span className="text-xl font-black text-[#163A63]">{city.ibpl}</span>
-                            <span className="text-xs text-[#5A6F82]"> / 100 IBPL</span>
+                            <span className="text-xl font-black text-[#163A63]">{formatPercentage(city.ibpl)}</span>
                           </div>
                           <span className="text-xs font-bold text-[#164E7A]">
                             {city.associados.toLocaleString()} aposentados

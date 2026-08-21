@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { DIMENSIONS } from '../mock/dimensions';
 import { EXPERIENCES } from '../mock/experiences';
 import { Experience, DimensionId } from '../types';
+import { formatPercentage } from '../utils/formatters';
 import {
   Sparkles,
   Target,
@@ -229,7 +230,7 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
                       {dim.name}
                     </span>
                     <span className="text-xs font-black text-[#E67E22] bg-[#FFF3E6] px-2 py-0.5 rounded-md">
-                      {dim.score}/100 no Radar
+                      {formatPercentage(dim.score)} no Radar
                     </span>
                   </div>
                   <p className="text-[11px] text-[#5A6F82]">
@@ -268,7 +269,7 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
                       {dim.name}
                     </span>
                     <span className="text-xs font-black text-[#0A7D76] bg-[#E6F7F6] px-2 py-0.5 rounded-md">
-                      {dim.score}/100 no Radar
+                      {formatPercentage(dim.score)} no Radar
                     </span>
                   </div>
                   <p className="text-[11px] text-[#5A6F82]">
@@ -466,7 +467,7 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
                     <div className="flex items-center justify-between text-[10px] font-bold">
                       <span className="text-[#164E7A]">Eixo do Radar: {dimObj?.name}</span>
                       <span className={dimScore < 68 ? 'text-[#E67E22]' : 'text-[#0A7D76]'}>
-                        Score: {dimScore}/100
+                        Score: {formatPercentage(dimScore)}
                       </span>
                     </div>
                     <p className="text-xs text-[#5A6F82] line-clamp-2 leading-relaxed">

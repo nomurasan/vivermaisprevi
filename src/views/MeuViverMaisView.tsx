@@ -8,6 +8,7 @@ import { Avatar } from '../components/Avatar';
 import { UserScheduleEventsModal } from '../components/UserScheduleEventsModal';
 import { DIMENSIONS, getStatusColorClass, getStatusLabel } from '../mock/dimensions';
 import { getRecommendations, getCommunityBenchmark, getLifeMoment } from '../services/api';
+import { formatPercentage } from '../utils/formatters';
 import { DimensionId, Experience, CommunityBenchmark, LifeMoment } from '../types';
 import {
   Sparkles,
@@ -272,7 +273,7 @@ export const MeuViverMaisView: React.FC = () => {
               </div>
               <div className="bg-white/10 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10">
                 <span className="text-[10px] uppercase font-bold text-[#B4EBE6] block">Índice IBPL Geral</span>
-                <span className="text-xl font-black text-[#12B8AE]">{effectiveIbplScore} / 100</span>
+                <span className="text-xl font-black text-[#12B8AE]">{formatPercentage(effectiveIbplScore)}</span>
                 <span className="text-[9px] text-[#B4EBE6] block mt-0.5">{effectiveIbplStatus}</span>
               </div>
               <div className="bg-white/10 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10">
@@ -320,9 +321,8 @@ export const MeuViverMaisView: React.FC = () => {
 
                   <div className="py-3 text-center bg-[#F4F7FA] rounded-2xl border border-[#D9E4EE]">
                     <span className="text-4xl sm:text-5xl font-black text-[#163A63]">
-                      {effectiveIbplScore}
+                      {formatPercentage(effectiveIbplScore)}
                     </span>
-                    <span className="text-sm font-bold text-[#5A6F82]"> / 100</span>
                     <p className="text-xs font-bold text-[#0A7D76] mt-1">
                       {effectiveIbplStatus}
                     </p>
@@ -418,7 +418,7 @@ export const MeuViverMaisView: React.FC = () => {
                       <p className="text-[11px] text-[#5A6F82] mt-0.5">{item.highlightText}</p>
                     </div>
                     <div className="text-right pl-3 shrink-0">
-                      <span className="text-base font-black text-[#0A7D76]">{item.score}</span>
+                      <span className="text-base font-black text-[#0A7D76]">{formatPercentage(item.score)}</span>
                       <button
                         onClick={() => handleOpenDimensionDetail(item.dimensionId)}
                         className="text-[10px] font-bold text-[#164E7A] block hover:underline"
@@ -458,7 +458,7 @@ export const MeuViverMaisView: React.FC = () => {
                       <p className="text-[11px] text-[#5A6F82] mt-0.5">{item.highlightText}</p>
                     </div>
                     <div className="text-right pl-3 shrink-0 space-y-1">
-                      <span className="text-base font-bold text-[#163A63] block">{item.score}</span>
+                      <span className="text-base font-bold text-[#163A63] block">{formatPercentage(item.score)}</span>
                       <div className="flex gap-1.5">
                         <button
                           onClick={() => handleOpenDimensionDetail(item.dimensionId)}
@@ -502,8 +502,8 @@ export const MeuViverMaisView: React.FC = () => {
                 <LineChart data={evolutionData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EEF3F7" />
                   <XAxis dataKey="period" tick={{ fontSize: 11, fill: '#163A63', fontWeight: 700 }} />
-                  <YAxis domain={[40, 100]} tick={{ fontSize: 10, fill: '#5A6F82' }} />
-                  <RechartsTooltip />
+                  <YAxis domain={[40, 100]} tickFormatter={(value: number) => formatPercentage(value)} tick={{ fontSize: 10, fill: '#5A6F82' }} />
+                  <RechartsTooltip formatter={(value: number) => [formatPercentage(value), 'Pontuação']} />
                   <Legend />
                   <Line type="monotone" dataKey="ibpl" name="IBPL Médio" stroke="#12B8AE" strokeWidth={3} dot={{ r: 5 }} />
                   <Line type="monotone" dataKey="emocional" name="Saúde Emocional" stroke="#164E7A" strokeWidth={2} strokeDasharray="4 4" />
@@ -607,8 +607,8 @@ export const MeuViverMaisView: React.FC = () => {
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#EEF3F7" />
                   <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#163A63', fontWeight: 700 }} />
-                  <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#5A6F82' }} />
-                  <RechartsTooltip />
+                  <YAxis domain={[0, 100]} tickFormatter={(value: number) => formatPercentage(value)} tick={{ fontSize: 10, fill: '#5A6F82' }} />
+                  <RechartsTooltip formatter={(value: number) => [formatPercentage(value), 'Pontuação']} />
                   <Legend />
                   <Bar dataKey="Você" fill="#12B8AE" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="Grupo Semelhante" fill="#164E7A" radius={[4, 4, 0, 0]} />
@@ -656,7 +656,7 @@ export const MeuViverMaisView: React.FC = () => {
             <div className="bg-white rounded-3xl border border-[#D9E4EE] p-6 space-y-4">
               <h3 className="text-lg font-black text-[#163A63]">Minhas prioridades</h3>
               <p className="text-xs text-[#5A6F82]">São oportunidades de desenvolvimento, não avaliações negativas.</p>
-              {priorityDimensions.map((d) => { const config = DIMENSIONS.find((x) => x.id === d.dimensionId)!; return <div key={d.dimensionId} className="p-4 rounded-2xl bg-[#F4F7FA] space-y-1"><div className="flex justify-between"><b>{d.name}</b><span className="font-black text-[#0A988F]">{d.score}/100</span></div><span className="text-[11px] font-bold text-[#164E7A]">{getStatusLabel(d.status)}</span><p className="text-xs text-[#5A6F82]">{config.guidingQuestion}</p><p className="text-xs text-[#5A6F82]">{config.reflectionTip}</p></div>; })}
+              {priorityDimensions.map((d) => { const config = DIMENSIONS.find((x) => x.id === d.dimensionId)!; return <div key={d.dimensionId} className="p-4 rounded-2xl bg-[#F4F7FA] space-y-1"><div className="flex justify-between"><b>{d.name}</b><span className="font-black text-[#0A988F]">{formatPercentage(d.score)}</span></div><span className="text-[11px] font-bold text-[#164E7A]">{getStatusLabel(d.status)}</span><p className="text-xs text-[#5A6F82]">{config.guidingQuestion}</p><p className="text-xs text-[#5A6F82]">{config.reflectionTip}</p></div>; })}
             </div>
             <div className="bg-white rounded-3xl border border-[#D9E4EE] p-6 space-y-4">
               <h3 className="text-lg font-black text-[#163A63]">Experiências recomendadas</h3>

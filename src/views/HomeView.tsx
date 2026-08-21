@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { formatPercentage } from '../utils/formatters';
 import { Avatar } from '../components/Avatar';
 import { DIMENSIONS } from '../mock/dimensions';
 import { PROFILES } from '../mock/participants';
@@ -433,7 +434,7 @@ export const HomeView: React.FC = () => {
                         size="lg"
                       />
                       <span className="text-xs font-black text-[#12B8AE] bg-[#E6F7F6] px-2.5 py-1 rounded-md border border-[#B4EBE6]">
-                        IBPL {p.ibpl}
+                        IBPL {formatPercentage(p.ibpl)}
                       </span>
                     </div>
 

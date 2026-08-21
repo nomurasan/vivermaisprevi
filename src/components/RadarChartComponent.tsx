@@ -10,6 +10,7 @@ import {
 } from 'recharts';
 import { DimensionConfig, DimensionId, StatusScore } from '../types';
 import { DIMENSIONS, getStatusFromScore, getStatusLabel } from '../mock/dimensions';
+import { formatPercentage } from '../utils/formatters';
 
 interface RadarChartProps {
   scores: Record<DimensionId, number>;
@@ -61,7 +62,7 @@ export const RadarChartComponent: React.FC<RadarChartProps> = ({ scores, onDimen
                 return (
                   <div className="bg-white p-3 rounded-lg shadow-lg border border-[#D9E4EE] text-xs">
                     <p className="font-bold text-[#163A63]">{data.fullName}</p>
-                    <p className="text-[#12B8AE] font-black text-sm">{data.score} / 100</p>
+                    <p className="text-[#12B8AE] font-black text-sm">{formatPercentage(data.score)}</p>
                     <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-[#F4F7FA] text-[#164E7A] border border-[#D9E4EE]">
                       {data.status}
                     </span>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { formatPercentage } from '../utils/formatters';
 import { DIMENSIONS, getStatusFromScore } from '../mock/dimensions';
 import {
   Sparkles,
@@ -141,8 +142,7 @@ export const OnboardingView: React.FC = () => {
                     </div>
                   </div>
                   <div className="text-right pl-3 shrink-0">
-                    <span className="text-xl font-black text-[#0A7D76]">{item.score}</span>
-                    <span className="text-[10px] text-[#0A7D76] block font-bold">/ 100</span>
+                    <span className="text-xl font-black text-[#0A7D76]">{formatPercentage(item.score)}</span>
                   </div>
                 </div>
               ))}
@@ -191,8 +191,7 @@ export const OnboardingView: React.FC = () => {
                     </div>
                   </div>
                   <div className="text-right pl-3 shrink-0">
-                    <span className="text-xl font-bold text-[#163A63]">{item.score}</span>
-                    <span className="text-[10px] text-[#5A6F82] block">/ 100</span>
+                    <span className="text-xl font-bold text-[#163A63]">{formatPercentage(item.score)}</span>
                   </div>
                 </div>
               ))}

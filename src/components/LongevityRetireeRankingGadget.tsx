@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { SYNTHETIC_PARTICIPANTS } from '../mock/participants';
 import { Participant } from '../types';
+import { formatPercentage } from '../utils/formatters';
 import {
   Trophy,
   Award,
@@ -196,8 +197,7 @@ export const LongevityRetireeRankingGadget: React.FC = () => {
             </div>
 
             <div className="w-full py-2 bg-[#F4F7FA] rounded-2xl border border-[#EEF3F7]">
-              <span className="text-2xl font-black text-[#163A63]">{rankedRetirees[1].ibpl}</span>
-              <span className="text-xs font-bold text-[#5A6F82]"> / 100 IBPL</span>
+              <span className="text-2xl font-black text-[#163A63]">{formatPercentage(rankedRetirees[1].ibpl)}</span>
             </div>
 
             <span className="text-[11px] text-[#12B8AE] font-bold">
@@ -244,8 +244,7 @@ export const LongevityRetireeRankingGadget: React.FC = () => {
             </div>
 
             <div className="w-full py-3 bg-gradient-to-r from-amber-50 to-[#FFF9E6] rounded-2xl border border-amber-200">
-              <span className="text-3xl font-black text-amber-900">{rankedRetirees[0].ibpl}</span>
-              <span className="text-sm font-bold text-amber-700"> / 100 IBPL</span>
+              <span className="text-3xl font-black text-amber-900">{formatPercentage(rankedRetirees[0].ibpl)}</span>
               <p className="text-[10px] font-bold text-[#0A7D76] mt-0.5">8 Dimensões em Plenitude</p>
             </div>
 
@@ -294,8 +293,7 @@ export const LongevityRetireeRankingGadget: React.FC = () => {
             </div>
 
             <div className="w-full py-2 bg-[#F4F7FA] rounded-2xl border border-[#EEF3F7]">
-              <span className="text-2xl font-black text-[#163A63]">{rankedRetirees[2].ibpl}</span>
-              <span className="text-xs font-bold text-[#5A6F82]"> / 100 IBPL</span>
+              <span className="text-2xl font-black text-[#163A63]">{formatPercentage(rankedRetirees[2].ibpl)}</span>
             </div>
 
             <span className="text-[11px] text-[#12B8AE] font-bold">
@@ -381,8 +379,7 @@ export const LongevityRetireeRankingGadget: React.FC = () => {
 
             <div className="p-3 bg-white/10 rounded-xl">
               <span className="text-xs text-[#B4EBE6] block">Pontuação IBPL no Radar:</span>
-              <span className="text-3xl font-black text-white">{selectedRetiree.ibpl}</span>
-              <span className="text-xs text-[#B4EBE6]"> / 100</span>
+                <span className="text-3xl font-black text-white">{formatPercentage(selectedRetiree.ibpl)}</span>
             </div>
           </div>
 
@@ -539,7 +536,7 @@ export const LongevityRetireeRankingGadget: React.FC = () => {
                     </td>
                     <td className="p-3 text-center">
                       <span className="px-2.5 py-1 bg-[#E6F7F6] text-[#0A7D76] rounded-full font-black text-xs border border-[#B4EBE6]">
-                        {ret.ibpl}
+                        {formatPercentage(ret.ibpl)}
                       </span>
                     </td>
                     <td className="p-3 text-center text-[#12B8AE] font-black">
@@ -604,7 +601,7 @@ export const LongevityRetireeRankingGadget: React.FC = () => {
               </div>
 
               <p className="text-xs text-[#2C3E50] leading-relaxed max-w-md mx-auto">
-                Em reconhecimento ao seu brilhante resultado de <strong>{selectedRetiree.ibpl} / 100 no IBPL</strong> e por servir como farol de vitalidade, propósito e convivência para toda a nossa rede.
+                Em reconhecimento ao seu brilhante resultado de <strong>{formatPercentage(selectedRetiree.ibpl)} no IBPL</strong> e por servir como farol de vitalidade, propósito e convivência para toda a nossa rede.
               </p>
 
               <div className="flex items-center justify-between pt-4 border-t border-amber-200 text-[10px] text-[#5A6F82]">
