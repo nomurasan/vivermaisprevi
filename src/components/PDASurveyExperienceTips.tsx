@@ -184,18 +184,18 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
               onClick={onOpenPDA}
               className="px-4 py-2.5 bg-[#163A63] hover:bg-[#1E466F] text-white rounded-xl text-xs font-black uppercase tracking-wide transition-all flex items-center gap-2 shadow-xs"
             >
-              <span>Criar / Atualizar meu PDA</span>
+              <span>Criar / Atualizar meu PDP</span>
               <ArrowRight className="w-4 h-4 text-[#12B8AE]" />
             </button>
             <span className="text-[10px] font-bold text-[#164E7A] uppercase tracking-wider">
-              PDA • Plano de Desenvolvimento do Aposentado
+              PDP • Plano de Desenvolvimento do Participante
             </span>
           </div>
 
           <div className="flex items-center gap-2 bg-[#F4F7FA] p-3 rounded-2xl border border-[#D9E4EE]">
             <Target className="w-5 h-5 text-[#12B8AE]" />
             <div className="text-xs">
-              <span className="font-bold text-[#163A63] block">Foco Recomendado no PDA:</span>
+              <span className="font-bold text-[#163A63] block">Foco Recomendado no PDP:</span>
               <span className="text-[#0A7D76] font-semibold">
                 {priorityList.map((p) => p.name).join(' & ')}
               </span>
@@ -214,7 +214,7 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
               <span>Oportunidades Prioritárias (Menor Pontuação)</span>
             </span>
             <span className="text-[10px] font-bold bg-white px-2.5 py-0.5 rounded-full text-[#B25900] border border-[#FFE0B2]">
-              Impulsione seu PDA
+              Impulsione seu PDP
             </span>
           </div>
 
@@ -276,7 +276,7 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
                   </p>
                   <p className="text-[11px] text-[#0A7D76] font-semibold flex items-start gap-1 pt-0.5">
                     <Sparkles className="w-3.5 h-3.5 text-[#12B8AE] shrink-0 mt-0.5" />
-                    <span><strong>Como usar no PDA:</strong> {tipInfo.actionTip}</span>
+                    <span><strong>Como usar no PDP:</strong> {tipInfo.actionTip}</span>
                   </p>
                 </div>
               );
@@ -290,7 +290,7 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EEF3F7] pb-3">
           <div>
             <span className="text-[11px] font-black uppercase tracking-wider text-[#164E7A] block">
-              FILTRO DO SEU PDA • PROTAGONISMO & INTENÇÕES
+              FILTRO DO SEU PDP • PROTAGONISMO & INTENÇÕES
             </span>
             <h4 className="text-lg sm:text-xl font-black text-[#163A63]">
               O que você gostaria de fazer neste momento?
@@ -441,7 +441,7 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
                         ? 'bg-[#12B8AE] text-[#163A63] border-[#12B8AE]'
                         : 'bg-white text-[#5A6F82] border-[#D9E4EE] hover:text-[#163A63]'
                         }`}
-                      title={isSaved ? 'Salvo no Meu Plano' : 'Salvar no PDA'}
+                      title={isSaved ? 'Salvo no Meu Plano' : 'Salvar no PDP'}
                     >
                       {isSaved ? (
                         <BookmarkCheck className="w-4 h-4" />
@@ -504,7 +504,7 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
         <div className="flex items-center gap-2.5 text-[#163A63]">
           <Compass className="w-5 h-5 text-[#12B8AE] shrink-0" />
           <span>
-            <strong>Lembrete PREVI:</strong> As experiências do PDA não possuem prazos ou obrigações. Você explora cada atividade no seu próprio tempo e ritmo!
+            <strong>Lembrete PREVI:</strong> As experiências do PDP não possuem prazos ou obrigações. Você explora cada atividade no seu próprio tempo e ritmo!
           </span>
         </div>
         <button
