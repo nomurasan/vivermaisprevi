@@ -13,12 +13,13 @@ import {
   SURVEY_VERSION,
   getAllSurveyQuestions,
   getSurveyAxisById,
+  getShortSurveyAxes,
 } from "../mock/surveyQuestions";
 
 /**
  * Quantidade mínima de respostas pontuáveis exigida em um eixo para que ele seja considerado válido.
  */
-export const MIN_SCORED_ANSWERS_PER_AXIS = 3;
+export const MIN_SCORED_ANSWERS_PER_AXIS = 1;
 
 /**
  * Quantidade mínima de eixos válidos exigida para calcular a pontuação geral.
@@ -50,7 +51,7 @@ export function calculateAxisResult(
   answers: SurveyAnswer[],
 ): AxisSurveyResult {
   const axis = getSurveyAxisById(axisId);
-  const totalQuestions = axis?.questions.length ?? 0;
+  const totalQuestions = getShortSurveyAxes().find((a) => a.id === axisId)?.questions.length ?? axis?.questions.length ?? 0;
   const scoredCount = answers.filter((a) => typeof a.score === "number").length;
   const skippedCount = answers.filter((a) => a.score === null).length;
   const answeredCount = answers.length;
@@ -107,7 +108,7 @@ export function calculateSurveyResult(
   draft: SurveyDraft,
   answers: SurveyAnswer[],
 ): SurveyResult {
-  const axisResults: AxisSurveyResult[] = SURVEY_AXES.map((axis) => {
+  const axisResults: AxisSurveyResult[] = getShortSurveyAxes().map((axis) => {
     const axisAnswers = answers.filter((a) => a.axisId === axis.id);
     return calculateAxisResult(axis.id, axisAnswers);
   });
@@ -147,14 +148,14 @@ export function canFinalizeAxis(
  * Verifica se todos os eixos podem ser finalizados.
  */
 export function canFinalizeSurvey(answers: SurveyAnswer[]): boolean {
-  return SURVEY_AXES.every((axis) => canFinalizeAxis(axis.id, answers));
+  return getShortSurveyAxes().every((axis) => axis.questions.every((q) => answers.some((a) => a.questionId === q.id)) && canFinalizeAxis(axis.id, answers));
 }
 
 /**
  * Retorna os eixos que ainda não podem ser finalizados.
  */
 export function getIncompleteAxes(answers: SurveyAnswer[]): DimensionId[] {
-  return SURVEY_AXES.filter((axis) => !canFinalizeAxis(axis.id, answers)).map(
+  return getShortSurveyAxes().filter((axis) => !canFinalizeAxis(axis.id, answers)).map(
     (axis) => axis.id,
   );
 }

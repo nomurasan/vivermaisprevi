@@ -619,8 +619,21 @@ export const SURVEY_AXES: SurveyAxis[] = [
 
 export const SURVEY_VERSION = "v1";
 
+export const SHORT_SURVEY_QUESTION_IDS = [
+  "SF01", "SF02", "SE01", "SE02", "RE01", "RE05", "TP01", "TP04",
+  "ES01", "ES04", "LC02", "LC03", "RF01", "RF05", "MO01", "MO02",
+] as const;
+
 export function getAllSurveyQuestions(): SurveyQuestion[] {
   return SURVEY_AXES.flatMap((axis) => axis.questions);
+}
+
+export function getShortSurveyQuestions(): SurveyQuestion[] {
+  return SHORT_SURVEY_QUESTION_IDS.map((id) => getAllSurveyQuestions().find((q) => q.id === id)).filter((q): q is SurveyQuestion => Boolean(q));
+}
+
+export function getShortSurveyAxes(): SurveyAxis[] {
+  return SURVEY_AXES.map((axis) => ({ ...axis, questions: getShortSurveyQuestions().filter((q) => q.axisId === axis.id) }));
 }
 
 export function getSurveyQuestionById(id: string): SurveyQuestion | undefined {

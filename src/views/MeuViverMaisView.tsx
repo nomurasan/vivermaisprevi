@@ -258,6 +258,11 @@ export const MeuViverMaisView: React.FC = () => {
               {surveyResult && <p className="text-[11px] text-[#B4EBE6]">Relatório de {surveyResult.displayName} • concluído em {new Date(surveyResult.completedAt).toLocaleDateString('pt-BR')}</p>}
             </div>
 
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <span className="text-xs font-bold text-[#B4EBE6]">{surveyResult ? `Última atualização: ${new Date(surveyResult.completedAt).toLocaleDateString('pt-BR')}` : 'Dados demonstrativos'}</span>
+              <button onClick={() => navigateTo('questionario_intro')} className="px-5 py-3 rounded-xl bg-[#12B8AE] text-[#163A63] font-black text-sm shadow-sm">{surveyResult ? 'Atualizar meu Retrato' : 'Criar meu Retrato de Longevidade'}</button>
+            </div>
+
             {/* Quadro de "Metas" bem-humorado */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
               <div className="bg-white/10 backdrop-blur-xs p-3.5 rounded-2xl border border-white/10">
@@ -620,14 +625,10 @@ export const MeuViverMaisView: React.FC = () => {
 
           {/* PARTE 5 DO GDA: EXPERIÊNCIAS RECOMENDADAS A PARTIR DO SEU RETRATO */}
           {/* Camada de leitura/recomendação: Retrato de Longevidade → GDA → Experiências → PDA */}
-          <PDASurveyExperienceTips
-            onOpenPDA={() => {
-              setMeuViverMaisTab('pda');
-              document
-                .getElementById('pda-planejamento')
-                ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }}
-          />
+          <div className="bg-white rounded-3xl border border-[#D9E4EE] p-6 flex flex-wrap items-center justify-between gap-4">
+            <div><h3 className="text-lg font-black text-[#163A63]">Transforme seu Retrato em um Plano</h3><p className="text-sm text-[#5A6F82] mt-1">Agora que você conhece suas fortalezas e oportunidades, avance para o PDP e escolha experiências para construir seu plano.</p></div>
+            <button onClick={() => setMeuViverMaisTab('pda')} className="px-5 py-3 rounded-xl bg-[#163A63] text-white font-bold">Criar ou atualizar meu PDP</button>
+          </div>
         </div>
       )}
 
@@ -662,6 +663,7 @@ export const MeuViverMaisView: React.FC = () => {
               {pdpExperiences.length ? pdpExperiences.map((e) => <div key={e.id} className="p-4 rounded-2xl border border-[#D9E4EE] flex items-center justify-between gap-3"><div><b className="text-sm">{e.title}</b><p className="text-xs text-[#5A6F82]">{e.partnerName} • {e.category}</p></div><button onClick={() => addToPlan(e)} className="shrink-0 px-3 py-2 rounded-lg bg-[#E6F7F6] text-[#0A7D76] text-xs font-bold">{savedExperienceIds.includes(e.id) ? 'Salvo' : 'Salvar'}</button></div>) : <p className="text-sm text-[#5A6F82]">Ainda não encontramos uma recomendação para estas prioridades. Explore o catálogo para escolher uma experiência no seu ritmo.</p>}
             </div>
           </section>
+          <PDASurveyExperienceTips onOpenPDA={() => setMeuViverMaisTab('pda')} />
           <section className="bg-white rounded-3xl border border-[#D9E4EE] p-6 space-y-4">
             <div className="flex justify-between items-center"><h3 className="text-lg font-black text-[#163A63]">Meu plano</h3><button onClick={() => navigateTo('explorar')} className="text-xs font-bold text-[#0A988F]">Explorar novas experiências</button></div>
             {myPlan.length ? <div className="grid md:grid-cols-3 gap-3">{myPlan.map((item) => <div key={item.id} className="p-4 rounded-2xl bg-[#F4F7FA]"><b className="text-sm">{item.experience.title}</b><p className="text-[11px] text-[#5A6F82] mt-1">Incluído em {new Date(item.addedAt).toLocaleDateString('pt-BR')}</p><span className="text-[11px] font-bold text-[#164E7A]">{item.status.replace('_', ' ')}</span><div className="flex gap-2 mt-3"><button onClick={() => markPlanItemCompleted(item.id)} className="text-[11px] text-[#0A7D76] font-bold">Marcar realizado</button><button onClick={() => removeFromPlan(item.id)} className="text-[11px] text-red-700 font-bold">Remover</button></div></div>)}</div> : <p className="text-sm text-[#5A6F82]">Seu plano começa com uma pequena escolha. Salve uma experiência recomendada acima.</p>}

@@ -131,7 +131,7 @@ interface AppContextType {
   submitExperienceEvaluation: (evaluation: ExperienceEvaluation) => void;
   submitPrototypeFeedback: (feedback: PrototypeFeedback) => void;
   recordEvent: (type: InteractionEvent['type'], payload: Record<string, any>) => void;
-  saveSurveyAnswer: (questionId: string, axisId: any, optionLabel: string, score: number | null) => void;
+  saveSurveyAnswer: (questionId: string, axisId: any, optionLabel: string, score: number | null, currentQuestionIndex?: number) => void;
   startSurvey: (displayName: string) => void;
   completeSurvey: () => SurveyResult | null;
   restartSurvey: () => void;
@@ -191,8 +191,8 @@ const INITIAL_PROTOTYPE_FEEDBACKS: PrototypeFeedback[] = [
 ];
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [currentView, setCurrentView] = useState<AppView>('questionario_intro');
-  const [meuViverMaisTab, setMeuViverMaisTab] = useState<MeuViverMaisTab>('retrato');
+  const [currentView, setCurrentView] = useState<AppView>('meu_viver_mais');
+  const [meuViverMaisTab, setMeuViverMaisTab] = useState<MeuViverMaisTab>('gda');
   const [activeProfileId, setActiveProfileId] = useState<string>('carlos');
   const [currentParticipant, setCurrentParticipant] = useState<Participant>(PROFILES.carlos);
   const [expandedProfile, setExpandedProfile] = useState<ParticipantExpandedProfile>(
@@ -261,15 +261,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return { dimensionId: a.axisId, name: dim.name, score: a.score as number, status: a.status!, description: dim.description, highlightText: dim.reflectionTip };
       }) : scores);
       setExpandedProfile(expProfile);
-      setCurrentView(result ? 'meu_viver_mais' : 'questionario_intro');
+      setCurrentView('meu_viver_mais');
+      setMeuViverMaisTab('gda');
     }
     loadData();
   }, [activeProfileId]);
 
-  const saveSurveyAnswer = (questionId: string, axisId: any, optionLabel: string, score: number | null) => {
+  const saveSurveyAnswer = (questionId: string, axisId: any, optionLabel: string, score: number | null, currentQuestionIndex?: number) => {
     setSurveyDraft((previous) => {
       const draft = previous || createInitialDraft(activeProfileId, currentParticipant.name);
-      const updated = { ...draft, updatedAt: new Date().toISOString(), answers: { ...draft.answers, [questionId]: { questionId, axisId, optionLabel, score, answeredAt: new Date().toISOString() } } };
+      const updated = { ...draft, updatedAt: new Date().toISOString(), currentQuestionIndex, answers: { ...draft.answers, [questionId]: { questionId, axisId, optionLabel, score, answeredAt: new Date().toISOString() } } };
       saveSurveyDraft(updated);
       return updated;
     });
