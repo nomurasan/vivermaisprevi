@@ -13,15 +13,15 @@ export type DimensionId =
 // ==========================================
 
 export type SurveyScaleType =
-  | 'frequencia'
-  | 'concordancia'
-  | 'satisfacao'
-  | 'avaliacao'
-  | 'preparo'
-  | 'quantidade_fisica'
-  | 'reserva_financeira'
-  | 'reflexao_futuro'
-  | 'compreensao_beneficio';
+  | "frequencia"
+  | "concordancia"
+  | "satisfacao"
+  | "avaliacao"
+  | "preparo"
+  | "quantidade_fisica"
+  | "reserva_financeira"
+  | "reflexao_futuro"
+  | "compreensao_beneficio";
 
 export interface SurveyOption {
   label: string;

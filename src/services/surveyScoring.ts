@@ -6,9 +6,14 @@ import {
   SurveyDraft,
   SurveyQuestion,
   SurveyResult,
-} from '../types';
-import { getStatusFromScore } from '../mock/dimensions';
-import { SURVEY_AXES, SURVEY_VERSION, getAllSurveyQuestions, getSurveyAxisById } from '../mock/surveyQuestions';
+} from "../types";
+import { getStatusFromScore } from "../mock/dimensions";
+import {
+  SURVEY_AXES,
+  SURVEY_VERSION,
+  getAllSurveyQuestions,
+  getSurveyAxisById,
+} from "../mock/surveyQuestions";
 
 /**
  * Quantidade mínima de respostas pontuáveis exigida em um eixo para que ele seja considerado válido.
@@ -27,7 +32,7 @@ export const MIN_VALID_AXES_FOR_OVERALL = 1;
 export function calculateAxisScore(answers: SurveyAnswer[]): number | null {
   const scored = answers
     .map((a) => a.score)
-    .filter((score): score is number => typeof score === 'number');
+    .filter((score): score is number => typeof score === "number");
 
   if (scored.length < MIN_SCORED_ANSWERS_PER_AXIS) {
     return null;
@@ -40,10 +45,13 @@ export function calculateAxisScore(answers: SurveyAnswer[]): number | null {
 /**
  * Calcula o resultado completo de um eixo, incluindo pontuação, status e contadores.
  */
-export function calculateAxisResult(axisId: DimensionId, answers: SurveyAnswer[]): AxisSurveyResult {
+export function calculateAxisResult(
+  axisId: DimensionId,
+  answers: SurveyAnswer[],
+): AxisSurveyResult {
   const axis = getSurveyAxisById(axisId);
   const totalQuestions = axis?.questions.length ?? 0;
-  const scoredCount = answers.filter((a) => typeof a.score === 'number').length;
+  const scoredCount = answers.filter((a) => typeof a.score === "number").length;
   const skippedCount = answers.filter((a) => a.score === null).length;
   const answeredCount = answers.length;
   const score = calculateAxisScore(answers);
@@ -67,9 +75,11 @@ export function calculateAxisResult(axisId: DimensionId, answers: SurveyAnswer[]
  * Usa a média aritmética dos eixos válidos.
  * Retorna null quando não há eixos válidos suficientes.
  */
-export function calculateOverallScore(axisResults: AxisSurveyResult[]): number | null {
+export function calculateOverallScore(
+  axisResults: AxisSurveyResult[],
+): number | null {
   const validScores = axisResults
-    .filter((r) => r.isValid && typeof r.score === 'number')
+    .filter((r) => r.isValid && typeof r.score === "number")
     .map((r) => r.score as number);
 
   if (validScores.length < MIN_VALID_AXES_FOR_OVERALL) {
@@ -83,7 +93,9 @@ export function calculateOverallScore(axisResults: AxisSurveyResult[]): number |
 /**
  * Calcula o status geral a partir da pontuação geral.
  */
-export function calculateOverallStatus(overallScore: number | null): StatusScore | null {
+export function calculateOverallStatus(
+  overallScore: number | null,
+): StatusScore | null {
   if (overallScore === null) return null;
   return getStatusFromScore(overallScore);
 }
@@ -93,7 +105,7 @@ export function calculateOverallStatus(overallScore: number | null): StatusScore
  */
 export function calculateSurveyResult(
   draft: SurveyDraft,
-  answers: SurveyAnswer[]
+  answers: SurveyAnswer[],
 ): SurveyResult {
   const axisResults: AxisSurveyResult[] = SURVEY_AXES.map((axis) => {
     const axisAnswers = answers.filter((a) => a.axisId === axis.id);
@@ -121,9 +133,12 @@ export function calculateSurveyResult(
  * Exige ao menos MIN_SCORED_ANSWERS_PER_AXIS respostas pontuáveis.
  * A opção "Prefiro não responder" conta como respondida, mas não entra na média.
  */
-export function canFinalizeAxis(axisId: DimensionId, answers: SurveyAnswer[]): boolean {
+export function canFinalizeAxis(
+  axisId: DimensionId,
+  answers: SurveyAnswer[],
+): boolean {
   const scoredCount = answers.filter(
-    (a) => a.axisId === axisId && typeof a.score === 'number'
+    (a) => a.axisId === axisId && typeof a.score === "number",
   ).length;
   return scoredCount >= MIN_SCORED_ANSWERS_PER_AXIS;
 }
@@ -140,14 +155,17 @@ export function canFinalizeSurvey(answers: SurveyAnswer[]): boolean {
  */
 export function getIncompleteAxes(answers: SurveyAnswer[]): DimensionId[] {
   return SURVEY_AXES.filter((axis) => !canFinalizeAxis(axis.id, answers)).map(
-    (axis) => axis.id
+    (axis) => axis.id,
   );
 }
 
 /**
  * Cria um rascunho inicial do questionário.
  */
-export function createInitialDraft(profileId: string, displayName: string): SurveyDraft {
+export function createInitialDraft(
+  profileId: string,
+  displayName: string,
+): SurveyDraft {
   const now = new Date().toISOString();
   return {
     surveyVersion: SURVEY_VERSION,
@@ -165,7 +183,7 @@ export function createInitialDraft(profileId: string, displayName: string): Surv
 export function buildAnswer(
   question: SurveyQuestion,
   optionLabel: string,
-  score: number | null
+  score: number | null,
 ): SurveyAnswer {
   return {
     questionId: question.id,
@@ -194,5 +212,5 @@ export function countAnsweredQuestions(answers: SurveyAnswer[]): number {
  * Conta quantas perguntas foram respondidas com pontuação (excluindo "Prefiro não responder").
  */
 export function countScoredQuestions(answers: SurveyAnswer[]): number {
-  return answers.filter((a) => typeof a.score === 'number').length;
+  return answers.filter((a) => typeof a.score === "number").length;
 }
