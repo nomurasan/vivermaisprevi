@@ -138,12 +138,16 @@ export const InteligenciaView: React.FC = () => {
                 Dados demonstrativos — protótipo
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              Inteligência de Longevidade
+            <h1 className="hidden text-2xl sm:text-3xl font-black tracking-tight text-white">
+              Radar Geral da Longevidade PREVI
             </h1>
-            <p className="text-xs sm:text-sm text-[#D9E4EE]">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">Radar Geral da Longevidade PREVI</h1>
+            <p className="hidden text-xs sm:text-sm text-[#D9E4EE]">
               Transformando dados em conhecimento para apoiar melhores decisões institucionais e personalização.
             </p>
+            <p className="text-xs sm:text-sm text-[#D9E4EE]">Indicadores, tendências e sinais sobre longevidade e qualidade de vida da comunidade PREVI.</p>
+            <p className="text-xs sm:text-sm text-[#D9E4EE] max-w-3xl">Explore informações agregadas que ajudam a compreender diferentes momentos de vida, prioridades e oportunidades para viver mais e melhor.</p>
+            <span className="inline-flex text-[10px] bg-[#12B8AE]/20 text-[#B4EBE6] px-2.5 py-1 rounded-full border border-[#12B8AE]/40 font-bold">Visão geral da comunidade</span>
           </div>
         </div>
 

@@ -74,8 +74,11 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2 text-xs text-[#D9E4EE]">
               <li>
+                <button onClick={() => navigateTo('inteligencia')} className="hidden hover:text-white hover:underline transition-colors">
+                  Radar da Longevidade
+                </button>
                 <button onClick={() => navigateTo('inteligencia')} className="hover:text-white hover:underline transition-colors">
-                  Inteligência de Longevidade
+                  Radar da Longevidade
                 </button>
               </li>
               <li>

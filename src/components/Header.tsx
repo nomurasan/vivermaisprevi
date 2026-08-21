@@ -38,11 +38,11 @@ export const Header: React.FC = () => {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
   const menuItems = [
-    { id: 'meu_viver_mais', label: 'MEU VIVER MAIS' },
-    { id: 'desaposente_rede', label: 'DESAPOSENTE SUA REDE' },
-    { id: 'inteligencia', label: 'INTELIGÊNCIA DE LONGEVIDADE' },
     { id: 'programa', label: 'O PROGRAMA' },
     { id: 'como_funciona', label: 'COMO FUNCIONA' },
+    { id: 'meu_viver_mais', label: 'MEU VIVER MAIS' },
+    { id: 'desaposente_rede', label: 'DESAPOSENTE SUA REDE' },
+    { id: 'inteligencia', label: 'RADAR DA LONGEVIDADE' },
   ];
 
   return (
@@ -191,14 +191,14 @@ export const Header: React.FC = () => {
       {/* Main Navigation Bar (PREVI Institutional Dark Blue #163A63) */}
       <div className="bg-[#163A63] text-white px-4 lg:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <nav className="hidden lg:flex items-center space-x-1">
+          <nav className="hidden lg:flex items-center space-x-0.5">
             {menuItems.map((item) => {
               const isActive = currentView === item.id;
               return (
                 <button
                   key={item.id}
                   onClick={() => navigateTo(item.id as any)}
-                  className={`px-4 py-3.5 text-xs font-bold tracking-wider transition-all relative ${
+                  className={`px-3 py-3.5 text-xs font-bold tracking-wide whitespace-nowrap transition-all relative ${
                     isActive
                       ? 'text-[#12B8AE] bg-[#1E466F]'
                       : 'text-white/90 hover:text-white hover:bg-[#1E466F]/60'
@@ -233,18 +233,6 @@ export const Header: React.FC = () => {
                 {item.label}
               </button>
             ))}
-            <div className="pt-2 px-2">
-              <button
-                onClick={() => {
-                  navigateTo('desaposente_rede');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full py-2.5 bg-[#12B8AE] text-[#163A63] font-bold text-xs uppercase tracking-wider rounded text-center flex items-center justify-center gap-2"
-              >
-                <Sparkles className="w-4 h-4" />
-                DESAPOSENTE SUA REDE
-              </button>
-            </div>
           </div>
         )}
       </div>
