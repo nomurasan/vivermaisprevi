@@ -1582,10 +1582,10 @@ export const IBPLRegionalAxisMap: React.FC = () => {
                 </div>
 
                 <div className="space-y-1 text-xs border-t border-[#EEF3F7] pt-2">
-                  <p className={`line-clamp-1 text-[11px] ${isStateSelected ? 'text-[#B4EBE6]' : 'text-[#2C3E50]'}`}>
+                  <p className={`text-[11px] leading-relaxed break-words ${isStateSelected ? 'text-[#B4EBE6]' : 'text-[#2C3E50]'}`}>
                     <strong>Destaque:</strong> {st.dominantStrength}
                   </p>
-                  <p className={`line-clamp-1 text-[11px] ${isStateSelected ? 'text-amber-200' : 'text-[#7F8C8D]'}`}>
+                  <p className={`text-[11px] leading-relaxed break-words ${isStateSelected ? 'text-amber-200' : 'text-[#7F8C8D]'}`}>
                     <strong>Desafio:</strong> {st.mainChallenge}
                   </p>
                 </div>
