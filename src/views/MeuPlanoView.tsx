@@ -66,7 +66,7 @@ export const MeuPlanoView: React.FC = () => {
           </button>
 
           <button
-            onClick={() => navigateTo('meu_viver_mais', 'pda')}
+            onClick={() => navigateTo('meu_viver_mais', 'pdp')}
             className="w-full sm:w-auto px-5 py-3 bg-[#12B8AE] hover:bg-[#0A988F] text-[#163A63] hover:text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
           >
             <Plus className="w-4 h-4" />
@@ -233,7 +233,7 @@ export const MeuPlanoView: React.FC = () => {
                 Explore o catálogo de parceiros para salvar experiências que combinem com o seu ritmo de vida.
               </p>
               <button
-                onClick={() => navigateTo('meu_viver_mais', 'pda')}
+                onClick={() => navigateTo('meu_viver_mais', 'pdp')}
                 className="px-5 py-2.5 bg-[#12B8AE] text-[#163A63] font-bold text-xs rounded-xl"
               >
                 Explorar no PDA

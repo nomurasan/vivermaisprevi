@@ -1,4 +1,4 @@
-import { SurveyDraft, SurveyResult } from "../types";
+import { AssessmentRecord, SurveyDraft, SurveyResult } from "../types";
 import { SURVEY_VERSION } from "../mock/surveyQuestions";
 
 /**
@@ -10,6 +10,7 @@ import { SURVEY_VERSION } from "../mock/surveyQuestions";
 
 const DRAFT_KEY_PREFIX = "vivermais:survey:draft:v1";
 const RESULT_KEY_PREFIX = "vivermais:survey:result:v1";
+const HISTORY_KEY_PREFIX = "vivermais:survey:history:v1";
 
 function draftKey(profileId: string): string {
   return `${DRAFT_KEY_PREFIX}:${profileId}`;
@@ -17,6 +18,10 @@ function draftKey(profileId: string): string {
 
 function resultKey(profileId: string): string {
   return `${RESULT_KEY_PREFIX}:${profileId}`;
+}
+
+function historyKey(profileId: string): string {
+  return `${HISTORY_KEY_PREFIX}:${profileId}`;
 }
 
 function safeParse<T>(raw: string | null): T | null {
@@ -73,6 +78,10 @@ export function loadSurveyResult(profileId: string): SurveyResult | null {
 export function saveSurveyResult(result: SurveyResult): void {
   if (typeof window === "undefined") return;
   try {
+    const record = toAssessmentRecord(result);
+    const history = loadSurveyHistory(result.profileId);
+    const nextHistory = [...history.filter((item) => item.id !== record.id), record];
+    window.localStorage.setItem(historyKey(result.profileId), JSON.stringify(nextHistory));
     window.localStorage.setItem(
       resultKey(result.profileId),
       JSON.stringify(result),
@@ -80,6 +89,35 @@ export function saveSurveyResult(result: SurveyResult): void {
   } catch (_) {
     // noop
   }
+}
+
+export function loadSurveyHistory(profileId: string): AssessmentRecord[] {
+  if (typeof window === "undefined") return [];
+  const parsed = safeParse<AssessmentRecord[]>(window.localStorage.getItem(historyKey(profileId)));
+  if (parsed?.length) return parsed.sort((a, b) => b.assessmentDate.localeCompare(a.assessmentDate));
+  const latest = loadSurveyResult(profileId);
+  return latest ? [toAssessmentRecord(latest)] : [];
+}
+
+function toAssessmentRecord(result: SurveyResult): AssessmentRecord {
+  const scored = result.axisResults
+    .filter((axis) => typeof axis.score === 'number')
+    .sort((a, b) => (b.score || 0) - (a.score || 0));
+  return {
+    ...result,
+    id: `assessment_${result.completedAt}`,
+    participantId: result.profileId,
+    assessmentDate: result.completedAt,
+    questionnaireVersion: result.surveyVersion,
+    strengths: scored.slice(0, 2).map((axis) => axis.axisId),
+    priorityOpportunities: [...scored].reverse().slice(0, 2).map((axis) => axis.axisId),
+    lifeStage: 'Acompanhamento da aposentadoria',
+    lifeMoments: [],
+    context: 'Registro criado a partir do questionário do participante.',
+    recommendations: [],
+    dataSource: 'questionario_participante',
+    createdAt: result.completedAt,
+  };
 }
 
 export function clearSurveyResult(profileId: string): void {

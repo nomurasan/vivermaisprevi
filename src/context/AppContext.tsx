@@ -20,6 +20,7 @@ import {
   PeerChatMessage,
   SurveyDraft,
   SurveyResult,
+  AssessmentRecord,
 } from '../types';
 import {
   getParticipant,
@@ -31,7 +32,7 @@ import { EXPERIENCES } from '../mock/experiences';
 import { getExpandedProfile } from '../mock/interestsCatalog';
 import { INITIAL_CONVERSATIONS, SMART_RESPONSES_BY_INTEREST } from '../mock/peerConversations';
 import { calculateSurveyResult, createInitialDraft } from '../services/surveyScoring';
-import { loadSurveyDraft, saveSurveyDraft, loadSurveyResult as readSurveyResult, saveSurveyResult, clearSurveyDraft, clearSurveyResult } from '../services/surveyStorage';
+import { loadSurveyDraft, saveSurveyDraft, loadSurveyResult as readSurveyResult, loadSurveyHistory, saveSurveyResult, clearSurveyDraft, clearSurveyResult } from '../services/surveyStorage';
 import { DIMENSIONS, getStatusLabel } from '../mock/dimensions';
 
 export type AppView =
@@ -49,17 +50,9 @@ export type AppView =
   | 'questionario';
 
 export type MeuViverMaisTab =
-  | 'gda'
-  | 'retrato'
-  | 'desaposente_rede'
-  | 'pda'
-  | 'hall_mestres'
-  | 'novas_experiencias'
-  | 'para_mim'
-  | 'gdp_aposentado'
-  | 'momento'
-  | 'comparacao'
-  | 'evolucao';
+  | 'visao_geral'
+  | 'gdp'
+  | 'pdp';
 
 interface AppContextType {
   currentView: AppView;
@@ -73,6 +66,7 @@ interface AppContextType {
   dimensionScores: DimensionScore[];
   surveyDraft: SurveyDraft | null;
   surveyResult: SurveyResult | null;
+  surveyHistory: AssessmentRecord[];
   ibplScore: number | null;
   ibplStatus: string | null;
   myPlan: PlanItem[];
@@ -192,7 +186,7 @@ const INITIAL_PROTOTYPE_FEEDBACKS: PrototypeFeedback[] = [
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentView, setCurrentView] = useState<AppView>('meu_viver_mais');
-  const [meuViverMaisTab, setMeuViverMaisTab] = useState<MeuViverMaisTab>('gda');
+  const [meuViverMaisTab, setMeuViverMaisTab] = useState<MeuViverMaisTab>('visao_geral');
   const [activeProfileId, setActiveProfileId] = useState<string>('carlos');
   const [currentParticipant, setCurrentParticipant] = useState<Participant>(PROFILES.carlos);
   const [expandedProfile, setExpandedProfile] = useState<ParticipantExpandedProfile>(
@@ -201,6 +195,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [dimensionScores, setDimensionScores] = useState<DimensionScore[]>([]);
   const [surveyDraft, setSurveyDraft] = useState<SurveyDraft | null>(null);
   const [surveyResult, setSurveyResult] = useState<SurveyResult | null>(null);
+  const [surveyHistory, setSurveyHistory] = useState<AssessmentRecord[]>([]);
   const [myPlan, setMyPlan] = useState<PlanItem[]>(INITIAL_PLAN);
   const [savedExperienceIds, setSavedExperienceIds] = useState<string[]>([
     'maturi_reconexao_prof',
@@ -253,8 +248,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const expProfile = getExpandedProfile(activeProfileId);
       setCurrentParticipant(p);
       const result = readSurveyResult(activeProfileId);
+      const history = loadSurveyHistory(activeProfileId);
       const draft = loadSurveyDraft(activeProfileId);
       setSurveyResult(result);
+      setSurveyHistory(history);
       setSurveyDraft(draft);
       setDimensionScores(result ? result.axisResults.filter((a) => a.score !== null).map((a) => {
         const dim = DIMENSIONS.find((d) => d.id === a.axisId)!;
@@ -262,7 +259,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }) : scores);
       setExpandedProfile(expProfile);
       setCurrentView('meu_viver_mais');
-      setMeuViverMaisTab('gda');
+      setMeuViverMaisTab('visao_geral');
     }
     loadData();
   }, [activeProfileId]);
@@ -287,7 +284,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const result = calculateSurveyResult(surveyDraft, Object.values(surveyDraft.answers));
     saveSurveyResult(result); clearSurveyDraft(activeProfileId); setSurveyResult(result); setSurveyDraft(null);
     const scores = result.axisResults.filter((a) => a.score !== null).map((a) => { const dim = DIMENSIONS.find((d) => d.id === a.axisId)!; return { dimensionId: a.axisId, name: dim.name, score: a.score as number, status: a.status!, description: dim.description, highlightText: dim.reflectionTip }; });
-    setDimensionScores(scores); setMeuViverMaisTab('gda'); setCurrentView('meu_viver_mais');
+    setDimensionScores(scores); setSurveyHistory(loadSurveyHistory(activeProfileId)); setMeuViverMaisTab('visao_geral'); setCurrentView('meu_viver_mais');
     return result;
   };
 
@@ -694,6 +691,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         dimensionScores,
         surveyDraft,
         surveyResult,
+        surveyHistory,
         ibplScore: surveyResult?.ibplScore ?? null,
         ibplStatus: surveyResult?.ibplStatus ? getStatusLabel(surveyResult.ibplStatus) : null,
         myPlan,

@@ -51,7 +51,7 @@ export const Header: React.FC = () => {
       <div className="bg-white border-b border-[#D9E4EE] px-4 lg:px-8 py-2.5">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo PREVI + Viver Mais */}
-          <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigateTo('meu_viver_mais', 'retrato')}>
+          <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigateTo('meu_viver_mais', 'visao_geral')}>
             <div className="flex items-center gap-3">
               {/* Official PREVI Logo Image */}
               <img

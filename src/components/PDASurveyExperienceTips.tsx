@@ -168,13 +168,13 @@ export const PDASurveyExperienceTips: React.FC<PDASurveyExperienceTipsProps> = (
         <div className="space-y-1">
           <h2 className="inline-flex items-center gap-2 text-lg sm:text-xl font-black text-[#0A7D76] uppercase tracking-wider">
             <Sparkles className="w-4 h-4 text-[#12B8AE]" />
-            GDA • Gestão de Desempenho do Aposentado
+            GDP • Gestão de Desempenho do Participante
           </h2>
           <h3 className="text-xl sm:text-2xl font-black text-[#163A63]">
             Experiências Recomendadas a Partir do seu Retrato
           </h3>
           <p className="text-xs sm:text-sm text-[#5A6F82]">
-            Com base no seu Retrato de Longevidade, o GDA identifica pontos de atenção, potencialidades e oportunidades para viver esta fase com mais qualidade.
+            O GDP ajuda você a compreender sua situação atual, acompanhar sua evolução e identificar fortalezas e oportunidades relacionadas à longevidade com qualidade.
           </p>
         </div>
 

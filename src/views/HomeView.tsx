@@ -338,7 +338,7 @@ export const HomeView: React.FC = () => {
               Ver Soluções desta Área
             </button>
             <button
-              onClick={() => navigateTo('meu_viver_mais', 'retrato')}
+              onClick={() => navigateTo('meu_viver_mais', 'visao_geral')}
               className="px-5 py-2.5 bg-white hover:bg-[#EEF3F7] text-[#164E7A] font-bold text-xs rounded-xl border border-[#D9E4EE] text-center transition-colors"
             >
               Ver no Meu Retrato

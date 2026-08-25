@@ -31,6 +31,8 @@ import {
   PieChart,
   Pie,
   Cell,
+  LineChart,
+  Line,
 } from 'recharts';
 import {
   TrendingUp,
@@ -106,6 +108,13 @@ export const InteligenciaView: React.FC = () => {
     { range: '60-69 anos', ibpl: 69, associados: 5410 },
     { range: '70-79 anos', ibpl: 67, associados: 2640 },
     { range: '80+ anos', ibpl: 65, associados: 616 },
+  ];
+
+  const communityEvolutionData = [
+    { period: 'Ago/25', current: 66, previous: 63 },
+    { period: 'Nov/25', current: 68, previous: 66 },
+    { period: 'Fev/26', current: 71, previous: 68 },
+    { period: 'Ago/26', current: 73, previous: 71 },
   ];
 
   // Sort rankings according to sub-tab
@@ -284,7 +293,6 @@ export const InteligenciaView: React.FC = () => {
             { id: 'difin_investimentos', label: '4. Investimentos (DIFIN) 🏛️' },
             { id: 'mapa_ibpl', label: '5. Mapa Regional do IBPL 🗺️' },
             { id: 'ecossistema', label: '6. Funil do Ecossistema' },
-            { id: 'rankings', label: '7. Rankings de Serviços' },
             { id: 'demanda_oferta', label: '8. Demanda x Oferta' },
             { id: 'cobertura', label: '9. Matriz de Cobertura' },
             { id: 'parceiros', label: '10. Visão de Parceiros' },
@@ -439,6 +447,23 @@ export const InteligenciaView: React.FC = () => {
                       <Bar dataKey="ibpl" name="IBPL Médio" fill="#12B8AE" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
+                </div>
+                <div className="mt-6 border-t border-[#D9E4EE] pt-5">
+                  <h4 className="font-bold text-sm text-[#163A63] mb-1">Evolução temporal da comunidade</h4>
+                  <p className="text-xs text-[#5A6F82] mb-3">Ciclo atual e ciclo anterior em dados agregados demonstrativos.</p>
+                  <div className="h-48 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={communityEvolutionData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#EEF3F7" />
+                        <XAxis dataKey="period" tick={{ fontSize: 10 }} />
+                        <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
+                        <RechartsTooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="current" name="Ciclo atual" stroke="#12B8AE" strokeWidth={3} dot={{ r: 4 }} />
+                        <Line type="monotone" dataKey="previous" name="Ciclo anterior" stroke="#164E7A" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
             </div>

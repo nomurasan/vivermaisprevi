@@ -237,7 +237,7 @@ export const UserScheduleEventsModal: React.FC<UserScheduleEventsModalProps> = (
             <button
               onClick={() => {
                 onClose();
-                navigateTo('meu_viver_mais', 'pda');
+                navigateTo('meu_viver_mais', 'pdp');
               }}
               className="text-xs font-bold text-[#0A7D76] hover:text-[#163A63] flex items-center gap-1.5 transition-colors"
             >

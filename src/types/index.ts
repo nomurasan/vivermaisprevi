@@ -94,6 +94,66 @@ export interface SurveyResult {
   ibplStatus: StatusScore | null;
 }
 
+/** Registro longitudinal de uma avaliação do participante. */
+export interface AssessmentRecord extends SurveyResult {
+  id: string;
+  participantId: string;
+  assessmentDate: string;
+  questionnaireVersion: string;
+  strengths: string[];
+  priorityOpportunities: string[];
+  lifeStage: string;
+  lifeMoments: string[];
+  context: string;
+  recommendations: string[];
+  dataSource: 'demonstrativo' | 'questionario_participante' | 'institucional';
+  createdAt: string;
+}
+
+export type PDPActionStatus = 'planejada' | 'em_andamento' | 'concluida';
+
+export interface PDPAction {
+  id: string;
+  participantId: string;
+  assessmentId?: string;
+  pillarId: DimensionId;
+  opportunityId?: string;
+  title: string;
+  description: string;
+  status: PDPActionStatus;
+  progress: number;
+  startDate?: string;
+  dueDate?: string;
+  completedAt?: string;
+  notes?: string;
+  ecosystemSolution?: string;
+  reminder?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PersonalTimelineEvent {
+  id: string;
+  participantId: string;
+  date: string;
+  title: string;
+  description: string;
+  type: 'avaliacao' | 'pdp' | 'programa' | 'momento' | 'revisao';
+  assessmentId?: string;
+  actionId?: string;
+}
+
+export interface CommunityExperienceContribution {
+  id: string;
+  participantId: string;
+  text: string;
+  pillarId: DimensionId;
+  displayName: boolean;
+  acceptsConversation: boolean;
+  authorized: boolean;
+  createdAt: string;
+}
+
 export type StatusScore = "FORTALECIDA" | "ACOMPANHAR" | "MERECE_ATENCAO";
 
 export interface DimensionConfig {
