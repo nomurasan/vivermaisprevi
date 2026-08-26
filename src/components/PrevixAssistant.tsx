@@ -179,7 +179,7 @@ export const PrevixAssistant: React.FC = () => {
               setIsPrevixOpen(true);
               recordEvent('OPEN_PREVIX', { context: previxContextKey });
             }}
-            aria-label="Abrir assistente PREVIX"
+            aria-label="Abrir assistente virtual"
             title="Abrir assistente virtual PREVIX"
             className="w-14 h-14 sm:w-[70px] sm:h-[70px] rounded-full bg-gradient-to-b from-[#1E466F] to-[#163A63] hover:from-[#245484] hover:to-[#1B426D] text-white shadow-xl hover:shadow-2xl flex items-center justify-center border-2 border-[#12B8AE] transition-all duration-300 hover:scale-105 group relative p-1.5 focus:outline-none focus:ring-2 focus:ring-[#12B8AE] focus:ring-offset-2"
           >
