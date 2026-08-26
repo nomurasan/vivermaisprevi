@@ -1,0 +1,2 @@
+import { JournalEntry } from '../types';
+export const LOGBOOK_ENTRIES: JournalEntry[] = [{ id:'j1', participantId:'carlos', date:'2026-08-20', type:'conquista', dimensionId:'relacionamentos', text:'Participei de um encontro com antigos colegas e saí renovado.', nextStep:'Manter um encontro por mês', privacy:'privado', source:'registro' }, { id:'j2', participantId:'carlos', date:'2026-07-28', type:'aprendizado', dimensionId:'saude_emocional', text:'Percebi que uma pausa curta me ajuda a organizar as ideias.', privacy:'privado', source:'previx' }];

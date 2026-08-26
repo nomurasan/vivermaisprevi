@@ -50,9 +50,9 @@ export type AppView =
   | 'questionario';
 
 export type MeuViverMaisTab =
-  | 'visao_geral'
-  | 'gdp'
-  | 'pdp';
+  | 'retrato'
+  | 'trilhas'
+  | 'diario';
 
 interface AppContextType {
   currentView: AppView;
@@ -186,7 +186,7 @@ const INITIAL_PROTOTYPE_FEEDBACKS: PrototypeFeedback[] = [
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentView, setCurrentView] = useState<AppView>('meu_viver_mais');
-  const [meuViverMaisTab, setMeuViverMaisTab] = useState<MeuViverMaisTab>('visao_geral');
+  const [meuViverMaisTab, setMeuViverMaisTab] = useState<MeuViverMaisTab>('retrato');
   const [activeProfileId, setActiveProfileId] = useState<string>('carlos');
   const [currentParticipant, setCurrentParticipant] = useState<Participant>(PROFILES.carlos);
   const [expandedProfile, setExpandedProfile] = useState<ParticipantExpandedProfile>(
@@ -259,7 +259,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }) : scores);
       setExpandedProfile(expProfile);
       setCurrentView('meu_viver_mais');
-      setMeuViverMaisTab('visao_geral');
+      setMeuViverMaisTab('retrato');
     }
     loadData();
   }, [activeProfileId]);
@@ -284,7 +284,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const result = calculateSurveyResult(surveyDraft, Object.values(surveyDraft.answers));
     saveSurveyResult(result); clearSurveyDraft(activeProfileId); setSurveyResult(result); setSurveyDraft(null);
     const scores = result.axisResults.filter((a) => a.score !== null).map((a) => { const dim = DIMENSIONS.find((d) => d.id === a.axisId)!; return { dimensionId: a.axisId, name: dim.name, score: a.score as number, status: a.status!, description: dim.description, highlightText: dim.reflectionTip }; });
-    setDimensionScores(scores); setSurveyHistory(loadSurveyHistory(activeProfileId)); setMeuViverMaisTab('visao_geral'); setCurrentView('meu_viver_mais');
+    setDimensionScores(scores); setSurveyHistory(loadSurveyHistory(activeProfileId)); setMeuViverMaisTab('retrato'); setCurrentView('meu_viver_mais');
     return result;
   };
 

@@ -178,6 +178,22 @@ export interface DimensionScore {
   highlightText: string;
 }
 
+export interface DevelopmentCycle {
+  id: string; participantId: string; name: string; startDate: string; endDate: string;
+  currentStage: string; priorities: string[]; actionsInProgress: string[];
+  checkIns: CheckIn[]; achievements: string[]; difficulties: string[]; supports: string[];
+  initialIbpl: number; finalIbpl?: number; learnings: string[]; nextSteps: string[];
+}
+export interface CyclePriority { id: string; dimensionId: DimensionId; title: string; description: string; status: 'ainda_nao_iniciado' | 'em_andamento' | 'pausado' | 'concluido' | 'quero_substituir' | 'preciso_de_apoio'; }
+export interface CheckIn { id: string; date: string; label: string; status: 'concluido' | 'proximo' | 'planejado'; }
+export interface DevelopmentTrail { id: string; title: string; dimensionId: DimensionId; description: string; format: string; duration: string; source: string; progress: number; nextStep: string; reason: string; category: 'recommended' | 'ongoing' | 'course' | 'material' | 'community' | 'completed'; demonstrative?: boolean; }
+export type LearningRecommendation = DevelopmentTrail;
+export interface JournalEntry { id: string; participantId: string; date: string; type: 'conquista' | 'dificuldade' | 'aprendizado' | 'mudanca_prioridade' | 'momento_de_vida' | 'pedido_apoio' | 'proximo_passo'; dimensionId?: DimensionId; action?: string; text: string; support?: string; nextStep?: string; privacy: 'privado' | 'equipe_apoio' | 'comunidade_consentimento'; resolved?: boolean; source: 'registro' | 'previx'; }
+export interface ConversationSummary { date: string; type: JournalEntry['type']; dimension?: DimensionId; action?: string; achievement?: string; difficulty?: string; support?: string; nextStep?: string; origin: string; privacy: JournalEntry['privacy']; }
+export type ContactPreference = 'mensal' | 'trimestral' | 'solicitar' | 'nao_receber';
+export interface InspirationCard { id: string; title: string; theme: string; description: string; why: string; firstStep: string; effort: string; source: string; demonstrative?: boolean; }
+export interface StoryContribution { id: string; title: string; whatDid: string; learned: string; usefulFor: string; anonymous: boolean; consent: boolean; moderated: boolean; }
+
 export interface LifeMoment {
   id: string;
   name: string;
