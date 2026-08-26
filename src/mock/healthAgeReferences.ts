@@ -1,0 +1,10 @@
+export interface HealthAgeReference { ageRange: string; period: string; sampleSize: number; careThemes: { id:string; label:string; percentage:number; description:string; relatedCare:string[]; source:string }[]; }
+export const MIN_COHORT_SIZE = 50;
+export const HEALTH_AGE_REFERENCES: HealthAgeReference[] = [{ ageRange:'60–69', period:'Dados demonstrativos · Base CASSI PREVI · 2025', sampleSize:128, careThemes:[
+ {id:'cardiovascular',label:'Cuidado cardiovascular',percentage:31,description:'Acompanhamentos relacionados à saúde cardiovascular aparecem com frequência nesta referência agregada.',relatedCare:['Aferição da pressão arterial','Avaliação clínica','Exames solicitados conforme o histórico individual'],source:'Base CASSI PREVI · demonstrativo'},
+ {id:'metabolica',label:'Saúde metabólica',percentage:24,description:'A saúde metabólica pode ser acompanhada com apoio profissional e atenção aos hábitos cotidianos.',relatedCare:['Glicemia','Perfil lipídico','Avaliação nutricional quando indicada'],source:'Base CASSI PREVI · demonstrativo'},
+ {id:'ocular',label:'Saúde ocular',percentage:18,description:'Cuidados com a visão ajudam a acompanhar mudanças e preservar autonomia.',relatedCare:['Consulta oftalmológica','Avaliação da acuidade visual','Exames complementares quando solicitados'],source:'Base CASSI PREVI · demonstrativo'},
+ {id:'osteomuscular',label:'Saúde osteomuscular',percentage:15,description:'Mobilidade e conforto podem ser temas importantes para conversar com a equipe de saúde.',relatedCare:['Avaliação de mobilidade','Orientação profissional individualizada'],source:'Base CASSI PREVI · demonstrativo'},
+ {id:'vacinacao',label:'Vacinação e prevenção',percentage:12,description:'A equipe de saúde pode orientar cuidados preventivos adequados ao seu contexto.',relatedCare:['Revisão da carteira vacinal','Orientações preventivas'],source:'Base CASSI PREVI · demonstrativo'},
+]}];
+export function mapCidGroupsToCareThemes(data: HealthAgeReference['careThemes']) { return data.map(({id,label,percentage,description,relatedCare,source})=>({id,label,percentage,description,relatedCare,source})); }
