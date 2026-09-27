@@ -9,15 +9,19 @@ import {
   Partner,
   PrototypeFeedback,
   CommunityBenchmark,
-} from '../types';
-import { DIMENSIONS, getStatusFromScore } from '../mock/dimensions';
-import { LIFE_MOMENTS } from '../mock/moments';
-import { PROFILES, SYNTHETIC_PARTICIPANTS } from '../mock/participants';
-import { PARTNERS } from '../mock/partners';
-import { EXPERIENCES } from '../mock/experiences';
-import { STRATEGIC_INSIGHTS } from '../mock/insights';
-import { ECOSYSTEM_RANKINGS, DEMAND_SUPPLY_DATA, COVERAGE_MATRIX } from '../mock/ecosystemMetrics';
-import { CONTEXTUAL_PROMPTS, PREVIX_MENU_OPTIONS } from '../mock/previxDialogs';
+} from "../types";
+import { DIMENSIONS, getStatusFromScore } from "../mock/dimensions";
+import { LIFE_MOMENTS } from "../mock/moments";
+import { PROFILES, SYNTHETIC_PARTICIPANTS } from "../mock/participants";
+import { PARTNERS } from "../mock/partners";
+import { EXPERIENCES } from "../mock/experiences";
+import { STRATEGIC_INSIGHTS } from "../mock/insights";
+import {
+  ECOSYSTEM_RANKINGS,
+  DEMAND_SUPPLY_DATA,
+  COVERAGE_MATRIX,
+} from "../mock/ecosystemMetrics";
+import { CONTEXTUAL_PROMPTS, PREVIX_MENU_OPTIONS } from "../mock/previxDialogs";
 
 /**
  * Camada de abstração de dados do Protótipo Viver Mais PREVI
@@ -30,7 +34,10 @@ export async function getDimensions(): Promise<DimensionConfig[]> {
 
 export async function getParticipant(id: string): Promise<Participant> {
   const normalizedId = id.toLowerCase();
-  const profile = PROFILES[normalizedId] || SYNTHETIC_PARTICIPANTS.find((p) => p.id === id) || PROFILES.carlos;
+  const profile =
+    PROFILES[normalizedId] ||
+    SYNTHETIC_PARTICIPANTS.find((p) => p.id === id) ||
+    PROFILES.carlos;
   return { ...profile };
 }
 
@@ -38,7 +45,9 @@ export async function getAllParticipants(): Promise<Participant[]> {
   return [...SYNTHETIC_PARTICIPANTS];
 }
 
-export async function getParticipantScores(participantId: string): Promise<DimensionScore[]> {
+export async function getParticipantScores(
+  participantId: string,
+): Promise<DimensionScore[]> {
   const p = await getParticipant(participantId);
   return DIMENSIONS.map((dim) => {
     const score = p.scores[dim.id] ?? 70;
@@ -50,11 +59,11 @@ export async function getParticipantScores(participantId: string): Promise<Dimen
       status,
       description: dim.description,
       highlightText:
-        status === 'FORTALECIDA'
+        status === "FORTALECIDA"
           ? `Seus vínculos e hábitos em ${dim.name} aparecem como uma de suas grandes fortalezas.`
-          : status === 'ACOMPANHAR'
-          ? `Dimensão com bom nível de estabilidade que você pode continuar acompanhando.`
-          : `Talvez valha olhar com um pouco mais de carinho e atenção para ${dim.name} neste momento.`,
+          : status === "ACOMPANHAR"
+            ? `Dimensão com bom nível de estabilidade que você pode continuar acompanhando.`
+            : `Talvez valha olhar com um pouco mais de carinho e atenção para ${dim.name} neste momento.`,
     };
   });
 }
@@ -64,12 +73,15 @@ export async function getIBPL(participantId: string) {
   return {
     score: p.ibpl,
     status: p.ibplStatus,
-    label: 'Painel de Evidências da Longevidade PREVI (demonstrativo)',
-    explanation: 'Painel de Evidências da Longevidade PREVI (valores sintéticos no protótipo).',
+    label: "Painel de Evidências da Longevidade PREVI (demonstrativo)",
+    explanation:
+      "Painel de Evidências da Longevidade PREVI (valores sintéticos no protótipo).",
   };
 }
 
-export async function getLifeMoment(momentId: string): Promise<LifeMoment | undefined> {
+export async function getLifeMoment(
+  momentId: string,
+): Promise<LifeMoment | undefined> {
   return LIFE_MOMENTS.find((m) => m.id === momentId) || LIFE_MOMENTS[0];
 }
 
@@ -81,7 +93,9 @@ export async function getPartners(): Promise<Partner[]> {
   return [...PARTNERS];
 }
 
-export async function getPartnerById(partnerId: string): Promise<Partner | undefined> {
+export async function getPartnerById(
+  partnerId: string,
+): Promise<Partner | undefined> {
   return PARTNERS.find((p) => p.id === partnerId);
 }
 
@@ -99,7 +113,9 @@ export async function getExperiences(filters?: {
 
   if (filters.dimensionId) {
     list = list.filter(
-      (e) => e.dimensionId === filters.dimensionId || e.secondaryDimensionId === filters.dimensionId
+      (e) =>
+        e.dimensionId === filters.dimensionId ||
+        e.secondaryDimensionId === filters.dimensionId,
     );
   }
 
@@ -108,14 +124,18 @@ export async function getExperiences(filters?: {
   }
 
   if (filters.goalTag) {
-    list = list.filter((e) => e.goalTags.some((t) => t.toLowerCase().includes(filters.goalTag!.toLowerCase())));
+    list = list.filter((e) =>
+      e.goalTags.some((t) =>
+        t.toLowerCase().includes(filters.goalTag!.toLowerCase()),
+      ),
+    );
   }
 
-  if (filters.modality && filters.modality !== 'Todos') {
+  if (filters.modality && filters.modality !== "Todos") {
     list = list.filter((e) => e.modality === filters.modality);
   }
 
-  if (filters.priceType && filters.priceType !== 'Todos') {
+  if (filters.priceType && filters.priceType !== "Todos") {
     list = list.filter((e) => e.priceType === filters.priceType);
   }
 
@@ -126,25 +146,34 @@ export async function getExperiences(filters?: {
         e.title.toLowerCase().includes(q) ||
         e.description.toLowerCase().includes(q) ||
         e.partnerName.toLowerCase().includes(q) ||
-        e.category.toLowerCase().includes(q)
+        e.category.toLowerCase().includes(q),
     );
   }
 
   return list;
 }
 
-export async function getRecommendations(participantId: string, intentionTag?: string): Promise<Experience[]> {
+export async function getRecommendations(
+  participantId: string,
+  intentionTag?: string,
+): Promise<Experience[]> {
   const p = await getParticipant(participantId);
   const scores = await getParticipantScores(participantId);
-  
+
   // Áreas com pontuação mais baixa (que merecem atenção) ganham peso na recomendação
-  const attentionDims = scores.filter((s) => s.status === 'MERECE_ATENCAO' || s.status === 'ACOMPANHAR').map((s) => s.dimensionId);
-  
+  const attentionDims = scores
+    .filter((s) => s.status === "MERECE_ATENCAO" || s.status === "ACOMPANHAR")
+    .map((s) => s.dimensionId);
+
   let list = [...EXPERIENCES];
 
   // Se o associado declarou intenção ativa (Protagonismo: DADO + ESCOLHA DECLARADA)
   if (intentionTag) {
-    const matched = list.filter((e) => e.goalTags.some((g) => g.toLowerCase().includes(intentionTag.toLowerCase())));
+    const matched = list.filter((e) =>
+      e.goalTags.some((g) =>
+        g.toLowerCase().includes(intentionTag.toLowerCase()),
+      ),
+    );
     if (matched.length > 0) {
       // Prioritize matched then fill with related
       const remaining = list.filter((e) => !matched.some((m) => m.id === e.id));
@@ -164,9 +193,11 @@ export async function getRecommendations(participantId: string, intentionTag?: s
   return list.slice(0, 4);
 }
 
-export async function getCommunityBenchmark(participantId: string): Promise<CommunityBenchmark[]> {
+export async function getCommunityBenchmark(
+  participantId: string,
+): Promise<CommunityBenchmark[]> {
   const p = await getParticipant(participantId);
-  
+
   // Média de todos os sintéticos para a PREVI geral
   const total = SYNTHETIC_PARTICIPANTS.length;
   const previAverages: Record<DimensionId, number> = {} as any;
@@ -174,14 +205,21 @@ export async function getCommunityBenchmark(participantId: string): Promise<Comm
 
   // Grupo semelhante: mesma faixa etária (idade +/- 5 anos) ou mesmo momento de vida
   const peers = SYNTHETIC_PARTICIPANTS.filter(
-    (other) => Math.abs(other.age - p.age) <= 5 || other.lifeMomentId === p.lifeMomentId
+    (other) =>
+      Math.abs(other.age - p.age) <= 5 || other.lifeMomentId === p.lifeMomentId,
   );
 
   DIMENSIONS.forEach((dim) => {
-    const previSum = SYNTHETIC_PARTICIPANTS.reduce((sum, curr) => sum + (curr.scores[dim.id] ?? 70), 0);
+    const previSum = SYNTHETIC_PARTICIPANTS.reduce(
+      (sum, curr) => sum + (curr.scores[dim.id] ?? 70),
+      0,
+    );
     previAverages[dim.id] = Math.round(previSum / total);
 
-    const peerSum = peers.reduce((sum, curr) => sum + (curr.scores[dim.id] ?? 70), 0);
+    const peerSum = peers.reduce(
+      (sum, curr) => sum + (curr.scores[dim.id] ?? 70),
+      0,
+    );
     peerAverages[dim.id] = Math.round(peerSum / Math.max(1, peers.length));
   });
 

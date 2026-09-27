@@ -231,11 +231,10 @@ export const ConsumerHabitsDashboard: React.FC = () => {
                     </div>
                   </div>
                   <span
-                    className={`font-black px-2.5 py-1 rounded-full text-xs flex items-center gap-1 ${
-                      isPositive
+                    className={`font-black px-2.5 py-1 rounded-full text-xs flex items-center gap-1 ${isPositive
                         ? 'bg-[#E6F7F6] text-[#0A7D76] border border-[#B4EBE6]'
                         : 'bg-[#FFF3E6] text-[#E67E22] border border-[#FFE0B2]'
-                    }`}
+                      }`}
                   >
                     {isPositive ? (
                       <ArrowUpRight className="w-3.5 h-3.5 text-[#12B8AE]" />

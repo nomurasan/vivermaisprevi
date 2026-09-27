@@ -270,17 +270,15 @@ export const HomeView: React.FC = () => {
               <button
                 key={dim.id}
                 onClick={() => setSelectedDimensionId(dim.id)}
-                className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                  isSelected
+                className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${isSelected
                     ? 'bg-white border-[#12B8AE] shadow-md ring-2 ring-[#12B8AE]/20'
                     : 'bg-white border-[#D9E4EE] hover:border-[#CAD8E6] hover:bg-[#FAFBFD]'
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between mb-3">
                   <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                      isSelected ? 'bg-[#12B8AE] text-white' : 'bg-[#EBF3FA] text-[#164E7A]'
-                    }`}
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center ${isSelected ? 'bg-[#12B8AE] text-white' : 'bg-[#EBF3FA] text-[#164E7A]'
+                      }`}
                   >
                     {getDimensionIcon(dim.id)}
                   </div>
@@ -420,11 +418,10 @@ export const HomeView: React.FC = () => {
                 <div
                   key={p.id}
                   onClick={() => switchProfile(p.id)}
-                  className={`p-6 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
-                    isActive
+                  className={`p-6 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${isActive
                       ? 'bg-[#FAFBFD] border-[#12B8AE] shadow-md ring-2 ring-[#12B8AE]/20'
                       : 'bg-white border-[#D9E4EE] hover:border-[#CAD8E6] hover:bg-[#F4F7FA]'
-                  }`}
+                    }`}
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -456,8 +453,8 @@ export const HomeView: React.FC = () => {
                         {p.lifeMomentId === 'aposentadoria_ativa'
                           ? 'Aposentadoria Ativa'
                           : p.lifeMomentId === 'pre_aposentadoria'
-                          ? 'Preparação para Nova Fase'
-                          : 'Longevidade Plena'}
+                            ? 'Preparação para Nova Fase'
+                            : 'Longevidade Plena'}
                       </p>
                     </div>
                   </div>

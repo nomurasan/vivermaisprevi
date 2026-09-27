@@ -81,11 +81,10 @@ export const Header: React.FC = () => {
             <button
               onClick={() => setFontSizeLarge((prev) => !prev)}
               title="Alternar tamanho da fonte para melhor leitura (50+)"
-              className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold border transition-colors ${
-                fontSizeLarge
+              className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold border transition-colors ${fontSizeLarge
                   ? 'bg-[#163A63] text-white border-[#163A63]'
                   : 'bg-white text-[#164E7A] border-[#D9E4EE] hover:bg-[#F4F7FA]'
-              }`}
+                }`}
             >
               <Type className="w-3.5 h-3.5" />
               <span>Acessibilidade {fontSizeLarge ? 'A+' : 'A'}</span>
@@ -148,9 +147,8 @@ export const Header: React.FC = () => {
                         switchProfile(p.id);
                         setIsProfileMenuOpen(false);
                       }}
-                      className={`w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-[#F4F7FA] transition-colors ${
-                        activeProfileId === p.id ? 'bg-[#E6F7F6] border-l-4 border-[#12B8AE]' : ''
-                      }`}
+                      className={`w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-[#F4F7FA] transition-colors ${activeProfileId === p.id ? 'bg-[#E6F7F6] border-l-4 border-[#12B8AE]' : ''
+                        }`}
                     >
                       <Avatar
                         src={p.avatarUrl}
@@ -198,11 +196,10 @@ export const Header: React.FC = () => {
                 <button
                   key={item.id}
                   onClick={() => navigateTo(item.id as any)}
-                  className={`px-3 py-3.5 text-xs font-bold tracking-wide whitespace-nowrap transition-all relative ${
-                    isActive
+                  className={`px-3 py-3.5 text-xs font-bold tracking-wide whitespace-nowrap transition-all relative ${isActive
                       ? 'text-[#12B8AE] bg-[#1E466F]'
                       : 'text-white/90 hover:text-white hover:bg-[#1E466F]/60'
-                  }`}
+                    }`}
                 >
                   {item.label}
                   {isActive && (
@@ -224,11 +221,10 @@ export const Header: React.FC = () => {
                   navigateTo(item.id as any);
                   setIsMobileMenuOpen(false);
                 }}
-                className={`w-full text-left px-4 py-2.5 text-sm font-bold tracking-wide rounded ${
-                  currentView === item.id
+                className={`w-full text-left px-4 py-2.5 text-sm font-bold tracking-wide rounded ${currentView === item.id
                     ? 'bg-[#1E466F] text-[#12B8AE]'
                     : 'text-white/90 hover:bg-[#1E466F]/50'
-                }`}
+                  }`}
               >
                 {item.label}
               </button>

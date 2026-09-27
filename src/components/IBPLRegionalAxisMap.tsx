@@ -1233,14 +1233,14 @@ export const IBPLRegionalAxisMap: React.FC = () => {
   // Filter cities by search and status
   const filteredCities = activeState
     ? activeState.cities.filter((city) => {
-        const matchesSearch =
-          city.name.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
-          city.highlights.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
-          city.priorityAxis.toLowerCase().includes(citySearchQuery.toLowerCase());
-        const matchesStatus =
-          cityStatusFilter === 'todos' ? true : city.status === cityStatusFilter;
-        return matchesSearch && matchesStatus;
-      })
+      const matchesSearch =
+        city.name.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+        city.highlights.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+        city.priorityAxis.toLowerCase().includes(citySearchQuery.toLowerCase());
+      const matchesStatus =
+        cityStatusFilter === 'todos' ? true : city.status === cityStatusFilter;
+      return matchesSearch && matchesStatus;
+    })
     : [];
 
   // Comparison data for all 5 regions
@@ -1307,11 +1307,10 @@ export const IBPLRegionalAxisMap: React.FC = () => {
                 <button
                   key={axis.id}
                   onClick={() => setSelectedAxis(axis.id)}
-                  className={`px-4 py-2.5 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-2 ${
-                    isSelected
+                  className={`px-4 py-2.5 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-2 ${isSelected
                       ? 'bg-[#163A63] text-white shadow-xs ring-2 ring-[#12B8AE]'
                       : 'bg-[#F4F7FA] text-[#5A6F82] hover:bg-[#EEF3F7] hover:text-[#163A63]'
-                  }`}
+                    }`}
                 >
                   <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-[#12B8AE]' : 'text-[#5A6F82]'}`} />
                   <span>{axis.label}</span>
@@ -1348,28 +1347,26 @@ export const IBPLRegionalAxisMap: React.FC = () => {
                 <div
                   key={reg.id}
                   onClick={() => handleSelectRegion(reg.id)}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer space-y-2 relative ${
-                    isSelected
+                  className={`p-4 rounded-2xl border transition-all cursor-pointer space-y-2 relative ${isSelected
                       ? 'bg-[#163A63] text-white border-[#163A63] shadow-md ring-2 ring-[#12B8AE]'
                       : isGood
-                      ? 'bg-[#F4FBF9] hover:bg-[#E6F7F6] border-[#B4EBE6]'
-                      : 'bg-[#FFFBF7] hover:bg-[#FFF3E6] border-[#FFE0B2]'
-                  }`}
+                        ? 'bg-[#F4FBF9] hover:bg-[#E6F7F6] border-[#B4EBE6]'
+                        : 'bg-[#FFFBF7] hover:bg-[#FFF3E6] border-[#FFE0B2]'
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className={`text-xs font-black uppercase ${isSelected ? 'text-[#B4EBE6]' : 'text-[#164E7A]'}`}>
                       {reg.name}
                     </span>
                     <span
-                      className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                        isGood
+                      className={`text-[10px] font-black px-2 py-0.5 rounded-full ${isGood
                           ? isSelected
                             ? 'bg-[#12B8AE] text-[#163A63]'
                             : 'bg-[#E6F7F6] text-[#0A7D76] border border-[#B4EBE6]'
                           : isSelected
-                          ? 'bg-[#E67E22] text-white'
-                          : 'bg-[#FFF3E6] text-[#E67E22] border border-[#FFE0B2]'
-                      }`}
+                            ? 'bg-[#E67E22] text-white'
+                            : 'bg-[#FFF3E6] text-[#E67E22] border border-[#FFE0B2]'
+                        }`}
                     >
                       {isGood ? 'Está Bem 🟢' : 'Precisa Melhorar 🟡'}
                     </span>
@@ -1381,15 +1378,14 @@ export const IBPLRegionalAxisMap: React.FC = () => {
                     </div>
 
                     <span
-                      className={`text-[11px] font-bold flex items-center ${
-                        Number(diffFromNational) >= 0
+                      className={`text-[11px] font-bold flex items-center ${Number(diffFromNational) >= 0
                           ? isSelected
                             ? 'text-[#12B8AE]'
                             : 'text-[#0A7D76]'
                           : isSelected
-                          ? 'text-amber-300'
-                          : 'text-[#E67E22]'
-                      }`}
+                            ? 'text-amber-300'
+                            : 'text-[#E67E22]'
+                        }`}
                     >
                       {Number(diffFromNational) >= 0 ? '+' : ''}
                       {diffFromNational} vs Brasil
@@ -1424,11 +1420,10 @@ export const IBPLRegionalAxisMap: React.FC = () => {
               <div className="flex items-center gap-2">
                 <h3 className="font-black text-xl text-[#163A63]">{currentRegion.name}</h3>
                 <span
-                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
-                    currentScore >= 70
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${currentScore >= 70
                       ? 'bg-[#E6F7F6] text-[#0A7D76] border border-[#B4EBE6]'
                       : 'bg-[#FFF3E6] text-[#E67E22] border border-[#FFE0B2]'
-                  }`}
+                    }`}
                 >
                   {currentScore >= 70 ? 'STATUS: BOM / ELEVADO' : 'STATUS: ATENÇÃO / GARGALO'}
                 </span>
@@ -1532,22 +1527,20 @@ export const IBPLRegionalAxisMap: React.FC = () => {
                   setSelectedStateUf(st.uf);
                   setCitySearchQuery('');
                 }}
-                className={`p-5 rounded-2xl border transition-all cursor-pointer space-y-3 relative group ${
-                  isStateSelected
+                className={`p-5 rounded-2xl border transition-all cursor-pointer space-y-3 relative group ${isStateSelected
                     ? 'bg-[#163A63] text-white border-[#163A63] shadow-md ring-2 ring-[#12B8AE]'
                     : isGood
-                    ? 'bg-[#FAFBFD] hover:bg-[#F4FBF9] border-[#D9E4EE] hover:border-[#12B8AE]'
-                    : 'bg-[#FAFBFD] hover:bg-[#FFFBF7] border-[#D9E4EE] hover:border-[#E67E22]'
-                }`}
+                      ? 'bg-[#FAFBFD] hover:bg-[#F4FBF9] border-[#D9E4EE] hover:border-[#12B8AE]'
+                      : 'bg-[#FAFBFD] hover:bg-[#FFFBF7] border-[#D9E4EE] hover:border-[#E67E22]'
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`w-8 h-8 rounded-xl font-black text-xs flex items-center justify-center shadow-xs ${
-                        isStateSelected
+                      className={`w-8 h-8 rounded-xl font-black text-xs flex items-center justify-center shadow-xs ${isStateSelected
                           ? 'bg-[#12B8AE] text-[#163A63]'
                           : 'bg-[#E6F7F6] text-[#0A7D76] border border-[#B4EBE6]'
-                      }`}
+                        }`}
                     >
                       {st.uf}
                     </span>
@@ -1555,15 +1548,14 @@ export const IBPLRegionalAxisMap: React.FC = () => {
                   </div>
 
                   <span
-                    className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                      isGood
+                    className={`text-[9px] font-black px-2 py-0.5 rounded-full ${isGood
                         ? isStateSelected
                           ? 'bg-[#12B8AE] text-[#163A63]'
                           : 'bg-[#E6F7F6] text-[#0A7D76] border border-[#B4EBE6]'
                         : isStateSelected
-                        ? 'bg-[#E67E22] text-white'
-                        : 'bg-[#FFF3E6] text-[#E67E22] border border-[#FFE0B2]'
-                    }`}
+                          ? 'bg-[#E67E22] text-white'
+                          : 'bg-[#FFF3E6] text-[#E67E22] border border-[#FFE0B2]'
+                      }`}
                   >
                     {isGood ? 'Está Bem 🟢' : 'Atenção 🟡'}
                   </span>
@@ -1591,9 +1583,8 @@ export const IBPLRegionalAxisMap: React.FC = () => {
                 </div>
 
                 <div
-                  className={`text-[11px] font-bold flex items-center justify-between pt-1 ${
-                    isStateSelected ? 'text-[#12B8AE]' : 'text-[#164E7A] group-hover:text-[#12B8AE]'
-                  }`}
+                  className={`text-[11px] font-bold flex items-center justify-between pt-1 ${isStateSelected ? 'text-[#12B8AE]' : 'text-[#164E7A] group-hover:text-[#12B8AE]'
+                    }`}
                 >
                   <span>
                     {isStateSelected ? '✓ Estado Selecionado' : 'Clique para ver cidades'}
@@ -1650,31 +1641,28 @@ export const IBPLRegionalAxisMap: React.FC = () => {
                 <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-[#D9E4EE] text-xs font-bold">
                   <button
                     onClick={() => setCityStatusFilter('todos')}
-                    className={`px-2.5 py-1 rounded-lg transition-all ${
-                      cityStatusFilter === 'todos'
+                    className={`px-2.5 py-1 rounded-lg transition-all ${cityStatusFilter === 'todos'
                         ? 'bg-[#163A63] text-white shadow-xs'
                         : 'text-[#5A6F82] hover:text-[#163A63]'
-                    }`}
+                      }`}
                   >
                     Todas
                   </button>
                   <button
                     onClick={() => setCityStatusFilter('bom')}
-                    className={`px-2.5 py-1 rounded-lg transition-all ${
-                      cityStatusFilter === 'bom'
+                    className={`px-2.5 py-1 rounded-lg transition-all ${cityStatusFilter === 'bom'
                         ? 'bg-[#12B8AE] text-[#163A63] shadow-xs'
                         : 'text-[#5A6F82] hover:text-[#0A7D76]'
-                    }`}
+                      }`}
                   >
                     Está Bem (≥70)
                   </button>
                   <button
                     onClick={() => setCityStatusFilter('atencao')}
-                    className={`px-2.5 py-1 rounded-lg transition-all ${
-                      cityStatusFilter === 'atencao'
+                    className={`px-2.5 py-1 rounded-lg transition-all ${cityStatusFilter === 'atencao'
                         ? 'bg-[#E67E22] text-white shadow-xs'
                         : 'text-[#5A6F82] hover:text-[#E67E22]'
-                    }`}
+                      }`}
                   >
                     Atenção (&lt;70)
                   </button>
@@ -1700,11 +1688,10 @@ export const IBPLRegionalAxisMap: React.FC = () => {
                           </div>
 
                           <span
-                            className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                              isCityGood
+                            className={`text-[10px] font-black px-2 py-0.5 rounded-full ${isCityGood
                                 ? 'bg-[#E6F7F6] text-[#0A7D76] border border-[#B4EBE6]'
                                 : 'bg-[#FFF3E6] text-[#E67E22] border border-[#FFE0B2]'
-                            }`}
+                              }`}
                           >
                             {isCityGood ? 'Está Bem 🟢' : 'Precisa Melhorar 🟡'}
                           </span>

@@ -695,35 +695,36 @@ export const InteligenciaView: React.FC = () => {
                   {COVERAGE_MATRIX.map((row) => {
                     const usage = COVERAGE_USAGE.find((item) => item.dimension === row.dimension)?.moments;
                     return (
-                    <tr key={row.dimension} className="hover:bg-[#FAFBFD]">
-                      <td className="p-3 font-bold text-[#163A63]">{row.dimension}</td>
-                      <td className="p-3 text-center">
-                        <span className="px-3 py-1 bg-[#E6F7F6] text-[#0A7D76] font-bold rounded-lg">
-                          {row.aposentadoria_ativa} sol. · {usage?.aposentadoria_ativa.users.toLocaleString()} usuários
-                        </span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className="px-3 py-1 bg-[#EBF3FA] text-[#164E7A] font-bold rounded-lg">
-                          {row.pre_aposentadoria} sol. · {usage?.pre_aposentadoria.users.toLocaleString()} usuários
-                        </span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span className="px-3 py-1 bg-[#E6F7F6] text-[#0A7D76] font-bold rounded-lg">
-                          {row.plenitude_longevidade} sol. · {usage?.plenitude_longevidade.users.toLocaleString()} usuários
-                        </span>
-                      </td>
-                      <td className="p-3 text-center">
-                        <span
-                          className={`px-3 py-1 font-bold rounded-lg ${row.cuidadores_e_familia < 2
-                            ? 'bg-[#EDF2F7] text-[#2C3E50]'
-                            : 'bg-[#EBF3FA] text-[#164E7A]'
-                            }`}
-                        >
-                          {row.cuidadores_e_familia} sol. · {usage?.cuidadores_e_familia.users.toLocaleString()} usuários
-                        </span>
-                      </td>
-                    </tr>
-                  ); })}
+                      <tr key={row.dimension} className="hover:bg-[#FAFBFD]">
+                        <td className="p-3 font-bold text-[#163A63]">{row.dimension}</td>
+                        <td className="p-3 text-center">
+                          <span className="px-3 py-1 bg-[#E6F7F6] text-[#0A7D76] font-bold rounded-lg">
+                            {row.aposentadoria_ativa} sol. · {usage?.aposentadoria_ativa.users.toLocaleString()} usuários
+                          </span>
+                        </td>
+                        <td className="p-3 text-center">
+                          <span className="px-3 py-1 bg-[#EBF3FA] text-[#164E7A] font-bold rounded-lg">
+                            {row.pre_aposentadoria} sol. · {usage?.pre_aposentadoria.users.toLocaleString()} usuários
+                          </span>
+                        </td>
+                        <td className="p-3 text-center">
+                          <span className="px-3 py-1 bg-[#E6F7F6] text-[#0A7D76] font-bold rounded-lg">
+                            {row.plenitude_longevidade} sol. · {usage?.plenitude_longevidade.users.toLocaleString()} usuários
+                          </span>
+                        </td>
+                        <td className="p-3 text-center">
+                          <span
+                            className={`px-3 py-1 font-bold rounded-lg ${row.cuidadores_e_familia < 2
+                              ? 'bg-[#EDF2F7] text-[#2C3E50]'
+                              : 'bg-[#EBF3FA] text-[#164E7A]'
+                              }`}
+                          >
+                            {row.cuidadores_e_familia} sol. · {usage?.cuidadores_e_familia.users.toLocaleString()} usuários
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -731,7 +732,7 @@ export const InteligenciaView: React.FC = () => {
             <div className="rounded-2xl border border-[#D9E4EE] bg-[#FAFBFD] p-5">
               <h4 className="font-bold text-base text-[#163A63]">TOP 10 soluções mais utilizadas pelos participantes</h4>
               <p className="mt-1 text-xs text-[#5A6F82]">Referência demonstrativa por quantidade agregada de utilizações.</p>
-              <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[680px] text-left text-xs"><thead className="border-b border-[#D9E4EE] text-[#163A63]"><tr><th className="p-3">#</th><th className="p-3">Solução</th><th className="p-3">Parceiro</th><th className="p-3">Área</th><th className="p-3 text-right">Participantes que utilizaram</th></tr></thead><tbody className="divide-y divide-[#EEF3F7]">{TOP_USED_SOLUTIONS.map(([name,partner,category,users],index)=><tr key={name}><td className="p-3 font-bold">{index+1}</td><td className="p-3 font-bold text-[#163A63]">{name}</td><td className="p-3">{partner}</td><td className="p-3">{category}</td><td className="p-3 text-right font-black text-[#0A7D76]">{users.toLocaleString()}</td></tr>)}</tbody></table></div>
+              <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[680px] text-left text-xs"><thead className="border-b border-[#D9E4EE] text-[#163A63]"><tr><th className="p-3">#</th><th className="p-3">Solução</th><th className="p-3">Parceiro</th><th className="p-3">Área</th><th className="p-3 text-right">Participantes que utilizaram</th></tr></thead><tbody className="divide-y divide-[#EEF3F7]">{TOP_USED_SOLUTIONS.map(([name, partner, category, users], index) => <tr key={name}><td className="p-3 font-bold">{index + 1}</td><td className="p-3 font-bold text-[#163A63]">{name}</td><td className="p-3">{partner}</td><td className="p-3">{category}</td><td className="p-3 text-right font-black text-[#0A7D76]">{users.toLocaleString()}</td></tr>)}</tbody></table></div>
             </div>
           </div>
         )}
