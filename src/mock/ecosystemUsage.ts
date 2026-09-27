@@ -1,0 +1,15 @@
+export type CoverageMoment = 'aposentadoria_ativa' | 'pre_aposentadoria' | 'plenitude_longevidade' | 'cuidadores_e_familia';
+export interface CoverageUsage { dimension: string; moments: Record<CoverageMoment, { solutions: number; users: number }>; }
+export const COVERAGE_USAGE: CoverageUsage[] = [
+ { dimension:'Saúde Física', moments:{aposentadoria_ativa:{solutions:5,users:1840},pre_aposentadoria:{solutions:3,users:960},plenitude_longevidade:{solutions:6,users:2120},cuidadores_e_familia:{solutions:4,users:740}} },
+ { dimension:'Saúde Emocional', moments:{aposentadoria_ativa:{solutions:4,users:1660},pre_aposentadoria:{solutions:4,users:1210},plenitude_longevidade:{solutions:2,users:680},cuidadores_e_familia:{solutions:3,users:520}} },
+ { dimension:'Relacionamentos', moments:{aposentadoria_ativa:{solutions:6,users:2430},pre_aposentadoria:{solutions:3,users:980},plenitude_longevidade:{solutions:5,users:1940},cuidadores_e_familia:{solutions:2,users:410}} },
+ { dimension:'Trabalho e Propósito', moments:{aposentadoria_ativa:{solutions:7,users:2860},pre_aposentadoria:{solutions:6,users:2340},plenitude_longevidade:{solutions:2,users:530},cuidadores_e_familia:{solutions:1,users:180}} },
+ { dimension:'Espiritualidade', moments:{aposentadoria_ativa:{solutions:3,users:1050},pre_aposentadoria:{solutions:2,users:640},plenitude_longevidade:{solutions:3,users:920},cuidadores_e_familia:{solutions:2,users:360}} },
+ { dimension:'Lazer e Cultura', moments:{aposentadoria_ativa:{solutions:8,users:3180},pre_aposentadoria:{solutions:5,users:1900},plenitude_longevidade:{solutions:7,users:2760},cuidadores_e_familia:{solutions:3,users:610}} },
+ { dimension:'Recursos Financeiros', moments:{aposentadoria_ativa:{solutions:4,users:1420},pre_aposentadoria:{solutions:5,users:1560},plenitude_longevidade:{solutions:3,users:810},cuidadores_e_familia:{solutions:2,users:290}} },
+ { dimension:'Moradia e Ambiente', moments:{aposentadoria_ativa:{solutions:2,users:580},pre_aposentadoria:{solutions:2,users:420},plenitude_longevidade:{solutions:3,users:760},cuidadores_e_familia:{solutions:2,users:310}} },
+];
+export const TOP_USED_SOLUTIONS = [
+ ['Ingressos e experiências culturais com desconto','Easy Live','Lazer e Cultura',2740], ['Desmistificando IA no Cotidiano','Saber Digital & IA 50+','Educação Digital',1890], ['Oportunidades profissionais e projetos 50+','Maturi','Trabalho e Propósito',1680], ['Roteiros de turismo cultural e história viva','Sesc Conexões Culturais','Lazer e Viagens',1450], ['Pilates e prevenção postural 50+','Movimento & Vitalidade','Saúde Física',1320], ['Mentoria intergeracional e transferência de saberes','Maturi','Trabalho e Propósito',1120], ['Círculo de transições e serenidade emocional','Rede Acolhe','Saúde Emocional',980], ['Organização patrimonial e planejamento de legado','PREVI Orientação Financeira','Recursos Financeiros',940], ['Caixa de Primeiros Socorros da Memória','LIFEBOOK','Saúde Emocional',520], ['Oficinas de convivência e participação','Rede Viver Bem','Relacionamentos',410],
+] as const;

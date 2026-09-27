@@ -1208,7 +1208,7 @@ export const IBPLRegionalAxisMap: React.FC = () => {
   };
 
   const axisOptions: { id: AxisId; label: string; icon: any }[] = [
-    { id: 'geral', label: 'IBPL Geral', icon: Sparkles },
+    { id: 'geral', label: 'Painel de Evidências da Longevidade PREVI', icon: Sparkles },
     { id: 'saude_fisica', label: 'Saúde Física', icon: Activity },
     { id: 'saude_emocional', label: 'Saúde Emocional', icon: Heart },
     { id: 'trabalho_proposito', label: 'Trabalho & Propósito', icon: Compass },
@@ -1272,13 +1272,13 @@ export const IBPLRegionalAxisMap: React.FC = () => {
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#E6F7F6] text-[#0A7D76] rounded-full text-xs font-black uppercase tracking-wider border border-[#B4EBE6]">
               <MapPin className="w-3.5 h-3.5 text-[#12B8AE]" />
-              <span>MAPA DIAGNÓSTICO DO IBPL POR REGIÃO, ESTADO E CIDADE</span>
+              <span>MAPA DIAGNÓSTICO DO PAINEL DE EVIDÊNCIAS DA LONGEVIDADE PREVI POR REGIÃO, ESTADO E CIDADE</span>
             </div>
             <h3 className="text-xl sm:text-2xl font-black text-[#163A63]">
               Onde Está Bem e Onde Precisa Melhorar
             </h3>
             <p className="text-xs sm:text-sm text-[#5A6F82]">
-              Selecione uma macrorregião para ver a relação de IBPL por Estado e clique no Estado para detalhar por Cidade.
+              Selecione uma macrorregião para ver a relação do Painel de Evidências da Longevidade PREVI por Estado e clique no Estado para detalhar por Cidade.
             </p>
           </div>
 
@@ -1497,14 +1497,14 @@ export const IBPLRegionalAxisMap: React.FC = () => {
       </div>
 
       {/* ============================================================ */}
-      {/* SECTION 2: RELAÇÃO DE IBPL POR ESTADO (DRILLDOWN 1) */}
+      {/* SECTION 2: RELAÇÃO DO PAINEL DE EVIDÊNCIAS DA LONGEVIDADE PREVI POR ESTADO (DRILLDOWN 1) */}
       {/* ============================================================ */}
       <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#D9E4EE] shadow-xs space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEF3F7] pb-4">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#F4F7FA] text-[#164E7A] rounded-full text-[11px] font-black uppercase tracking-wider border border-[#D9E4EE]">
               <Layers className="w-3.5 h-3.5 text-[#12B8AE]" />
-              <span>2. RELAÇÃO DE IBPL POR ESTADO ({currentRegion.name.toUpperCase()})</span>
+              <span>2. RELAÇÃO DO PAINEL DE EVIDÊNCIAS DA LONGEVIDADE PREVI POR ESTADO ({currentRegion.name.toUpperCase()})</span>
             </div>
             <h4 className="text-lg sm:text-xl font-extrabold text-[#163A63]">
               Estados da {currentRegion.name}
@@ -1606,7 +1606,7 @@ export const IBPLRegionalAxisMap: React.FC = () => {
         </div>
 
         {/* ============================================================ */}
-        {/* SECTION 3: RELAÇÃO DE IBPL POR CIDADE (DRILLDOWN 2) */}
+        {/* SECTION 3: RELAÇÃO DO PAINEL DE EVIDÊNCIAS DA LONGEVIDADE PREVI POR CIDADE (DRILLDOWN 2) */}
         {/* ============================================================ */}
         {activeState && (
           <div className="pt-6 border-t border-[#EEF3F7] space-y-6 animate-in fade-in">

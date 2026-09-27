@@ -23,8 +23,8 @@ export const HowItWorksView: React.FC = () => {
     {
       step: '2',
       title: 'Interpretamos com Rigor Metodológico',
-      subtitle: 'Cálculo do IBPL e Dimensões',
-      desc: 'Os dados são organizados nas 8 Áreas da Vida e no Índice do Bem-Estar PREVI para a Longevidade (IBPL), ponderados sem foco punitivo.',
+      subtitle: 'Painel de Evidências da Longevidade PREVI e Dimensões',
+      desc: 'Os dados são organizados nas 8 Áreas da Vida e no Painel de Evidências da Longevidade PREVI, ponderados sem foco punitivo.',
     },
     {
       step: '3',
@@ -100,7 +100,7 @@ export const HowItWorksView: React.FC = () => {
           <span>Esclarecimento sobre a Versão Demonstrativa (Protótipo V1)</span>
         </h4>
         <p className="text-xs text-[#5A6F82] leading-relaxed">
-          Os dados, perfis de associados, pontuações do IBPL e catálogos apresentados neste ambiente são conceituais e fictícios, criados exclusivamente para validação de navegabilidade, relevância e experiência do usuário.
+          Os dados, perfis de associados, pontuações do Painel de Evidências da Longevidade PREVI e catálogos apresentados neste ambiente são conceituais e fictícios, criados exclusivamente para validação de navegabilidade, relevância e experiência do usuário.
         </p>
       </div>
 

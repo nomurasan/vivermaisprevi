@@ -115,11 +115,11 @@ export const PREVIX_MENU_OPTIONS: PrevixMenuItem[] = [
   },
   {
     id: 'explain_ibpl',
-    label: 'Quero entender o IBPL',
+    label: 'Quero entender o Painel de Evidências da Longevidade PREVI',
     actionType: 'explain_ibpl',
-    responseTitle: 'Sobre o IBPL Demonstrativo',
+    responseTitle: 'Sobre o Painel de Evidências da Longevidade PREVI Demonstrativo',
     responseMessages: [
-      'O IBPL (Índice do Bem-Estar PREVI para a Longevidade) é um indicador orientador que sintetiza o equilíbrio geral entre as 8 dimensões.',
+      'O Painel de Evidências da Longevidade PREVI é um indicador orientador que sintetiza o equilíbrio geral entre as 8 dimensões.',
       'Ele não é uma "nota definitiva" nem uma competição: é apenas uma bússola para apoiar seu autocuidado contínuo.',
     ],
     suggestedAction: {

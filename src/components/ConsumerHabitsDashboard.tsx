@@ -80,10 +80,10 @@ export const ConsumerHabitsDashboard: React.FC = () => {
 
   // Correlation: IBPL score vs Spending on Active Longevity
   const IBPL_SPENDING_CORRELATION = [
-    { faixaIBPL: 'IBPL < 50 (Crítico)', ticketMedioSaude: 1120, ticketMedioLazerCultura: 95, gastosViagemAnual: 1400 },
-    { faixaIBPL: 'IBPL 50-69 (Atenção)', ticketMedioSaude: 910, ticketMedioLazerCultura: 210, gastosViagemAnual: 3200 },
-    { faixaIBPL: 'IBPL 70-84 (Bom)', ticketMedioSaude: 740, ticketMedioLazerCultura: 420, gastosViagemAnual: 6800 },
-    { faixaIBPL: 'IBPL 85-100 (Excelente)', ticketMedioSaude: 620, ticketMedioLazerCultura: 680, gastosViagemAnual: 11400 },
+    { faixaIBPL: 'Abaixo de 50 (Crítico)', ticketMedioSaude: 1120, ticketMedioLazerCultura: 95, gastosViagemAnual: 1400 },
+    { faixaIBPL: '50-69 (Atenção)', ticketMedioSaude: 910, ticketMedioLazerCultura: 210, gastosViagemAnual: 3200 },
+    { faixaIBPL: '70-84 (Bom)', ticketMedioSaude: 740, ticketMedioLazerCultura: 420, gastosViagemAnual: 6800 },
+    { faixaIBPL: '85-100 (Excelente)', ticketMedioSaude: 620, ticketMedioLazerCultura: 680, gastosViagemAnual: 11400 },
   ];
 
   return (
@@ -100,7 +100,7 @@ export const ConsumerHabitsDashboard: React.FC = () => {
               Hábitos de Consumo do Aposentado
             </h2>
             <p className="text-xs sm:text-sm text-[#B4EBE6] max-w-3xl leading-relaxed mt-1">
-              Cruzamento de dados anônimos agregados de compras no cartão de crédito: entenda como a renda é alocada, a transição pós-carreira e o impacto dos gastos com bem-estar no IBPL.
+              Cruzamento de dados anônimos agregados de compras no cartão de crédito: entenda como a renda é alocada, a transição pós-carreira e o impacto dos gastos com bem-estar no Painel de Evidências da Longevidade PREVI.
             </p>
           </div>
           <div className="p-4 bg-white/10 backdrop-blur-xs rounded-2xl border border-white/20 text-center shrink-0">
@@ -150,7 +150,7 @@ export const ConsumerHabitsDashboard: React.FC = () => {
 
         <div className="p-5 bg-white rounded-2xl border border-[#D9E4EE] shadow-xs space-y-1">
           <span className="text-[11px] text-[#5A6F82] uppercase font-bold block">
-            Impacto no IBPL
+            Impacto no Painel de Evidências da Longevidade PREVI
           </span>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-black text-[#27AE60]">+18.4 pts</span>
@@ -311,17 +311,17 @@ export const ConsumerHabitsDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Grid 3: Cruzamento Consumo vs IBPL */}
+      {/* Grid 3: Cruzamento Consumo vs Painel de Evidências da Longevidade PREVI */}
       <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#D9E4EE] shadow-xs space-y-4">
         <div className="space-y-1 border-b border-[#EEF3F7] pb-4">
           <span className="text-xs font-black uppercase tracking-wider text-[#164E7A] block">
-            CRUZAMENTO: GASTOS EM LAZER/CULTURA vs SAÚDE REATIVA vs PONTUAÇÃO NO IBPL
+            CRUZAMENTO: GASTOS EM LAZER/CULTURA vs SAÚDE REATIVA vs PONTUAÇÃO NO PAINEL DE EVIDÊNCIAS DA LONGEVIDADE PREVI
           </span>
           <h3 className="text-lg font-black text-[#163A63]">
             A Relação entre Investimento em Qualidade de Vida e a Longevidade Ativa
           </h3>
           <p className="text-xs text-[#5A6F82]">
-            Aposentados com maior IBPL direcionam proporcionalmente mais recursos para experiências enriquecedoras e menos para remédios de uso agudo.
+            Pessoas aposentadas com pontuação mais alta no Painel de Evidências da Longevidade PREVI direcionam proporcionalmente mais recursos para experiências enriquecedoras e menos para remédios de uso agudo.
           </p>
         </div>
 

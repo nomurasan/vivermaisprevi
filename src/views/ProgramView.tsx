@@ -75,7 +75,7 @@ export const ProgramView: React.FC = () => {
             <span className="text-xs font-bold text-[#12B8AE]">PILAR 1</span>
             <h3 className="font-bold text-sm text-[#163A63]">Compreensão Multidimensional</h3>
             <p className="text-xs text-[#5A6F82]">
-              Avaliação contínua das 8 Áreas da Vida através da Pesquisa Vivendo Mais e do IBPL.
+              Avaliação contínua das 8 Áreas da Vida através da Pesquisa Vivendo Mais e do Painel de Evidências da Longevidade PREVI.
             </p>
           </div>
 

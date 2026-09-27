@@ -278,15 +278,6 @@ export const DEMAND_SUPPLY_DATA: DemandSupplyItem[] = [
   },
 ];
 
-export const FUNNEL_STAGES = [
-  { stage: 'Recomendado', count: 43560, pct: 100, color: '#163A63' },
-  { stage: 'Visualizado', count: 37026, pct: 85, color: '#1F5B89' },
-  { stage: 'Interesse', count: 22650, pct: 52, color: '#164E7A' },
-  { stage: 'Utilização', count: 16117, pct: 37, color: '#12B8AE' },
-  { stage: 'Avaliação', count: 13068, pct: 30, color: '#20C2B4' },
-  { stage: 'Recomendaria', count: 12284, pct: 28, color: '#0A988F' },
-];
-
 export const COVERAGE_MATRIX = [
   { dimension: 'Saúde Física', aposentadoria_ativa: 5, pre_aposentadoria: 3, plenitude_longevidade: 6, cuidadores_e_familia: 4 },
   { dimension: 'Saúde Emocional', aposentadoria_ativa: 4, pre_aposentadoria: 4, plenitude_longevidade: 2, cuidadores_e_familia: 3 },

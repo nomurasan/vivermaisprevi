@@ -97,28 +97,28 @@ export const CassiHealthCIDDashboard: React.FC = () => {
   // Correlation: IBPL Longevity Level vs CASSI Health Plan Cost & Hospitalizations
   const CASSI_IBPL_CORRELATION = [
     {
-      faixa: 'IBPL < 50 (Crítico)',
+      faixa: 'Abaixo de 50 (Crítico)',
       custoPerCapita: 1840,
       internacoesPor100: 3.8,
       consultasProntoSocorro: 5.2,
       adesaoPreventiva: 18,
     },
     {
-      faixa: 'IBPL 50-69 (Atenção)',
+      faixa: '50-69 (Atenção)',
       custoPerCapita: 1320,
       internacoesPor100: 2.1,
       consultasProntoSocorro: 3.4,
       adesaoPreventiva: 42,
     },
     {
-      faixa: 'IBPL 70-84 (Bom)',
+      faixa: '70-84 (Bom)',
       custoPerCapita: 980,
       internacoesPor100: 1.2,
       consultasProntoSocorro: 1.8,
       adesaoPreventiva: 74,
     },
     {
-      faixa: 'IBPL 85-100 (Excelente)',
+      faixa: '85-100 (Excelente)',
       custoPerCapita: 740,
       internacoesPor100: 0.6,
       consultasProntoSocorro: 0.9,
@@ -200,7 +200,7 @@ export const CassiHealthCIDDashboard: React.FC = () => {
           </span>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-black text-[#12B8AE]">-68%</span>
-            <span className="text-xs text-[#0A7D76] font-bold">no IBPL Alto vs Baixo</span>
+            <span className="text-xs text-[#0A7D76] font-bold">no Painel de Evidências da Longevidade PREVI: alto vs. baixo</span>
           </div>
           <p className="text-[11px] text-[#5A6F82]">0.6 vs 3.8 internações / 100 vidas</p>
         </div>
@@ -292,7 +292,7 @@ export const CassiHealthCIDDashboard: React.FC = () => {
               CORRELAÇÃO CLÍNICO-FINANCEIRA
             </span>
             <h3 className="text-lg font-black text-[#163A63] mt-0.5">
-              Custo Assistencial Per Capita CASSI (R$/mês) por Faixa do IBPL
+              Custo Assistencial Per Capita CASSI (R$/mês) por faixa do Painel de Evidências da Longevidade PREVI
             </h3>
             <p className="text-xs text-[#5A6F82]">
               Maior pontuação na longevidade multidimensional gera expressiva queda na sinistralidade médica

@@ -16,7 +16,7 @@ import { PROFILES, SYNTHETIC_PARTICIPANTS } from '../mock/participants';
 import { PARTNERS } from '../mock/partners';
 import { EXPERIENCES } from '../mock/experiences';
 import { STRATEGIC_INSIGHTS } from '../mock/insights';
-import { ECOSYSTEM_RANKINGS, DEMAND_SUPPLY_DATA, FUNNEL_STAGES, COVERAGE_MATRIX } from '../mock/ecosystemMetrics';
+import { ECOSYSTEM_RANKINGS, DEMAND_SUPPLY_DATA, COVERAGE_MATRIX } from '../mock/ecosystemMetrics';
 import { CONTEXTUAL_PROMPTS, PREVIX_MENU_OPTIONS } from '../mock/previxDialogs';
 
 /**
@@ -64,8 +64,8 @@ export async function getIBPL(participantId: string) {
   return {
     score: p.ibpl,
     status: p.ibplStatus,
-    label: 'IBPL Demonstrativo',
-    explanation: 'Índice do Bem-Estar PREVI para a Longevidade (valores sintéticos no protótipo).',
+    label: 'Painel de Evidências da Longevidade PREVI (demonstrativo)',
+    explanation: 'Painel de Evidências da Longevidade PREVI (valores sintéticos no protótipo).',
   };
 }
 
@@ -201,7 +201,6 @@ export async function getEcosystemMetrics() {
   return {
     rankings: [...ECOSYSTEM_RANKINGS],
     demandSupply: [...DEMAND_SUPPLY_DATA],
-    funnel: [...FUNNEL_STAGES],
     coverageMatrix: [...COVERAGE_MATRIX],
   };
 }

@@ -8,12 +8,12 @@ import { DifinInvestmentsDashboard } from '../components/DifinInvestmentsDashboa
 import {
   ECOSYSTEM_RANKINGS,
   DEMAND_SUPPLY_DATA,
-  FUNNEL_STAGES,
   COVERAGE_MATRIX,
   EcosystemRankingItem,
 } from '../mock/ecosystemMetrics';
 import { STRATEGIC_INSIGHTS } from '../mock/insights';
 import { PARTNERS } from '../mock/partners';
+import { COVERAGE_USAGE, TOP_USED_SOLUTIONS } from '../mock/ecosystemUsage';
 import {
   BarChart,
   Bar,
@@ -66,7 +66,6 @@ export const InteligenciaView: React.FC = () => {
     | 'saude_cassi_cid'
     | 'difin_investimentos'
     | 'mapa_ibpl'
-    | 'ecossistema'
     | 'rankings'
     | 'demanda_oferta'
     | 'cobertura'
@@ -168,7 +167,7 @@ export const InteligenciaView: React.FC = () => {
           </div>
           <div className="bg-[#1E466F] p-3 rounded-2xl border border-[#1F5B89] text-center">
             <span className="text-lg sm:text-xl font-black text-[#12B8AE] block">68,4</span>
-            <span className="text-[10px] text-[#D9E4EE] font-semibold">IBPL Médio</span>
+            <span className="text-[10px] text-[#D9E4EE] font-semibold">Pontuação média do Painel de Evidências da Longevidade PREVI</span>
           </div>
           <div className="bg-[#1E466F] p-3 rounded-2xl border border-[#1F5B89] text-center">
             <span className="text-lg sm:text-xl font-black text-white block">64%</span>
@@ -291,8 +290,7 @@ export const InteligenciaView: React.FC = () => {
             { id: 'habitos_consumo', label: '2. Hábitos de Consumo (Cartão) 💳' },
             { id: 'saude_cassi_cid', label: '3. Saúde & CIDs (CASSI) 🏥' },
             { id: 'difin_investimentos', label: '4. Investimentos (DIFIN) 🏛️' },
-            { id: 'mapa_ibpl', label: '5. Mapa Regional do IBPL 🗺️' },
-            { id: 'ecossistema', label: '6. Funil do Ecossistema' },
+            { id: 'mapa_ibpl', label: '5. Mapa Regional do Painel de Evidências da Longevidade PREVI 🗺️' },
             { id: 'demanda_oferta', label: '8. Demanda x Oferta' },
             { id: 'cobertura', label: '9. Matriz de Cobertura' },
             { id: 'parceiros', label: '10. Visão de Parceiros' },
@@ -331,7 +329,7 @@ export const InteligenciaView: React.FC = () => {
                     Hábitos de Consumo do Aposentado
                   </h4>
                   <p className="text-xs text-[#5A6F82]">
-                    Transição de gastos, farmácia, turismo e impacto no IBPL.
+                    Transição de gastos, farmácia, turismo e impacto no Painel de Evidências da Longevidade PREVI.
                   </p>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-[#E67E22] text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
@@ -394,7 +392,7 @@ export const InteligenciaView: React.FC = () => {
                     <span>NOVIDADE GEOGRÁFICA</span>
                   </span>
                   <h4 className="font-extrabold text-sm text-[#163A63] group-hover:text-[#12B8AE] transition-colors">
-                    Mapa do IBPL: Onde está bem e Onde melhorar
+                    Mapa do Painel de Evidências da Longevidade PREVI: Onde está bem e Onde melhorar
                   </h4>
                   <p className="text-xs text-[#5A6F82]">
                     Diagnóstico dos 5 eixos e macrorregiões do Brasil com planos de ação.
@@ -431,7 +429,7 @@ export const InteligenciaView: React.FC = () => {
               {/* Age Distribution Chart */}
               <div className="lg:col-span-6 bg-[#FAFBFD] p-6 rounded-2xl border border-[#D9E4EE]">
                 <h3 className="font-bold text-sm text-[#163A63] mb-1">
-                  IBPL Médio por Faixa Etária
+                  Pontuação do Painel de Evidências da Longevidade PREVI por Faixa Etária
                 </h3>
                 <p className="text-xs text-[#5A6F82] mb-4">
                   Acompanhamento de estabilidade e transições ao longo do tempo
@@ -444,7 +442,7 @@ export const InteligenciaView: React.FC = () => {
                       <XAxis dataKey="range" tick={{ fontSize: 11, fill: '#163A63', fontWeight: 700 }} />
                       <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#5A6F82' }} />
                       <RechartsTooltip />
-                      <Bar dataKey="ibpl" name="IBPL Médio" fill="#12B8AE" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="ibpl" name="Pontuação média do Painel de Evidências da Longevidade PREVI" fill="#12B8AE" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -498,9 +496,8 @@ export const InteligenciaView: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 2: ECOSSISTEMA E FUNIL */}
-        {activeTab === 'ecossistema' && (
-          <div className="p-6 sm:p-8 space-y-8 animate-in fade-in">
+        {false && (
+          <div className="hidden">
             <div className="space-y-2">
               <h3 className="font-bold text-base text-[#163A63]">
                 Funil de Conversão e Engajamento das Soluções
@@ -512,7 +509,7 @@ export const InteligenciaView: React.FC = () => {
 
             {/* Funnel Progress Bars */}
             <div className="space-y-3 max-w-3xl mx-auto pt-4">
-              {FUNNEL_STAGES.map((stg) => (
+              {[].map((stg) => (
                 <div key={stg.stage} className="space-y-1">
                   <div className="flex items-center justify-between text-xs font-bold">
                     <span className="text-[#163A63]">{stg.stage}</span>
@@ -695,22 +692,24 @@ export const InteligenciaView: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#EEF3F7]">
-                  {COVERAGE_MATRIX.map((row) => (
+                  {COVERAGE_MATRIX.map((row) => {
+                    const usage = COVERAGE_USAGE.find((item) => item.dimension === row.dimension)?.moments;
+                    return (
                     <tr key={row.dimension} className="hover:bg-[#FAFBFD]">
                       <td className="p-3 font-bold text-[#163A63]">{row.dimension}</td>
                       <td className="p-3 text-center">
                         <span className="px-3 py-1 bg-[#E6F7F6] text-[#0A7D76] font-bold rounded-lg">
-                          {row.aposentadoria_ativa} sol.
+                          {row.aposentadoria_ativa} sol. · {usage?.aposentadoria_ativa.users.toLocaleString()} usuários
                         </span>
                       </td>
                       <td className="p-3 text-center">
                         <span className="px-3 py-1 bg-[#EBF3FA] text-[#164E7A] font-bold rounded-lg">
-                          {row.pre_aposentadoria} sol.
+                          {row.pre_aposentadoria} sol. · {usage?.pre_aposentadoria.users.toLocaleString()} usuários
                         </span>
                       </td>
                       <td className="p-3 text-center">
                         <span className="px-3 py-1 bg-[#E6F7F6] text-[#0A7D76] font-bold rounded-lg">
-                          {row.plenitude_longevidade} sol.
+                          {row.plenitude_longevidade} sol. · {usage?.plenitude_longevidade.users.toLocaleString()} usuários
                         </span>
                       </td>
                       <td className="p-3 text-center">
@@ -720,13 +719,19 @@ export const InteligenciaView: React.FC = () => {
                             : 'bg-[#EBF3FA] text-[#164E7A]'
                             }`}
                         >
-                          {row.cuidadores_e_familia} sol.
+                          {row.cuidadores_e_familia} sol. · {usage?.cuidadores_e_familia.users.toLocaleString()} usuários
                         </span>
                       </td>
                     </tr>
-                  ))}
+                  ); })}
                 </tbody>
               </table>
+            </div>
+            <p className="text-xs text-[#5A6F82]">Os usuários representam utilizações agregadas e demonstrativas por solução e momento de vida; não identificam participantes individualmente.</p>
+            <div className="rounded-2xl border border-[#D9E4EE] bg-[#FAFBFD] p-5">
+              <h4 className="font-bold text-base text-[#163A63]">TOP 10 soluções mais utilizadas pelos participantes</h4>
+              <p className="mt-1 text-xs text-[#5A6F82]">Referência demonstrativa por quantidade agregada de utilizações.</p>
+              <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[680px] text-left text-xs"><thead className="border-b border-[#D9E4EE] text-[#163A63]"><tr><th className="p-3">#</th><th className="p-3">Solução</th><th className="p-3">Parceiro</th><th className="p-3">Área</th><th className="p-3 text-right">Participantes que utilizaram</th></tr></thead><tbody className="divide-y divide-[#EEF3F7]">{TOP_USED_SOLUTIONS.map(([name,partner,category,users],index)=><tr key={name}><td className="p-3 font-bold">{index+1}</td><td className="p-3 font-bold text-[#163A63]">{name}</td><td className="p-3">{partner}</td><td className="p-3">{category}</td><td className="p-3 text-right font-black text-[#0A7D76]">{users.toLocaleString()}</td></tr>)}</tbody></table></div>
             </div>
           </div>
         )}

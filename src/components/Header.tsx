@@ -161,7 +161,7 @@ export const Header: React.FC = () => {
                         <div className="flex items-center justify-between">
                           <p className="text-xs font-bold text-[#163A63] truncate">{p.name.split(' ')[0]}</p>
                           <span className="text-[10px] font-semibold text-[#12B8AE] bg-white px-1.5 py-0.5 rounded border border-[#B4EBE6]">
-                            IBPL {formatPercentage(p.ibpl)}
+                            Painel de Evidências da Longevidade PREVI {formatPercentage(p.ibpl)}
                           </span>
                         </div>
                         <p className="text-[11px] text-[#5A6F82] truncate">
